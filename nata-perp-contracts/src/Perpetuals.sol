@@ -175,7 +175,7 @@ contract Perpetuals is Ownable, IPerpetuals {
         emit SizeIncreased(msg.sender, _positionId, newSize);
     }
 
-    function calculatePnL(address _user, bytes32 _positionId) internal view returns (int256) {
+    function _calculatePnL(address _user, bytes32 _positionId) internal view returns (int256) {
         Position memory position = positions[_user][_positionId];
 
         uint256 delta;
@@ -199,5 +199,9 @@ contract Perpetuals is Ownable, IPerpetuals {
 
     function _getOraclePrice(address /*_token*/ ) internal pure returns (uint256) {
         return 10 ** 18; // TODO integrate chronicle oracle
+    }
+
+    function isTokenValid(address _token) external view returns (bool) {
+        return allowedTokens.contains(_token);
     }
 }
