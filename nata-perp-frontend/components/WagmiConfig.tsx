@@ -15,7 +15,7 @@ const projectId = "5a7ce9e60e8ebeabb85f1fa0fe29a3c2";
 
 // 2. Create wagmiConfig
 const wagmiMetadata = {
-  title: "Trading Perp",
+  title: "Nata Perp",
   description: "ETH Lisbon Hackathon Project",
 };
 

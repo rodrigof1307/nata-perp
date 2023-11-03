@@ -8,7 +8,7 @@ import WagmiConfig from "@/components/WagmiConfig";
 const sora = Sora({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Trading Perp",
+  title: "Nata Perp",
   description: "ETH Lisbon Hackathon Project",
 };
 export default function RootLayout({
