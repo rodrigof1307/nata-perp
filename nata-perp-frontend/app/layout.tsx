@@ -17,18 +17,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="min-h-full">
-      <body
-        className={cn(
-          sora.className,
-          "min-h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-zinc-900 to-zinc-800"
-        )}
-      >
-        <WagmiConfig>
+    <WagmiConfig>
+      <html lang="en" className="min-h-screen">
+        <body
+          className={cn(
+            sora.className,
+            "min-h-screen flex flex-col bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-zinc-900 to-zinc-800"
+          )}
+        >
           <Navbar />
           {children}
-        </WagmiConfig>
-      </body>
-    </html>
+        </body>
+      </html>
+    </WagmiConfig>
   );
 }

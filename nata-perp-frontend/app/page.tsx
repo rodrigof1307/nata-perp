@@ -1,12 +1,26 @@
-import { Button } from "@/components/ui/button";
+import ExplanationBox from "@/components/ExplanationBox";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <h1 className="text-center font-bold text-orange-600 underline">
-        Hello world, I am Nata Perp
-      </h1>
-      <Button>And I am a Button with shadcn UI</Button>
+    <main className="flex flex-1 items-center justify-around">
+      <ExplanationBox
+        title="Trade"
+        description="Trade on Nata"
+        buttonTitle="Trade"
+        href="/trading"
+      />
+      <ExplanationBox
+        title="Liquidity Pool"
+        description="Provide liquidity to the Nata protocol"
+        buttonTitle="Liquidity Pool"
+        href="/liquidity-pool"
+      />
+      <ExplanationBox
+        title="Liquidation"
+        description="Liquidate positions on Nata"
+        buttonTitle="Liquidation"
+        href="/liquidation"
+      />
     </main>
   );
 }
