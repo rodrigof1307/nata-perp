@@ -15,7 +15,7 @@ const Navbar: FC = ({}) => {
     );
 
   return (
-    <div className="flex w-full items-center justify-between rounded-b-2xl bg-zinc-700/50 px-10 py-6">
+    <div className="flex h-28 w-full items-center justify-between rounded-b-2xl bg-zinc-600/20 px-10">
       <div className="flex items-center justify-between gap-8">
         <Link href={"/"} className={getLinkClasses("/")}>
           Home
