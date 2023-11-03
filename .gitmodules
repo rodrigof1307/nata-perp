@@ -1,0 +1,6 @@
+[submodule "nata-perp-contracts/lib/forge-std"]
+	path = nata-perp-contracts/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "nata-perp-contracts/lib/openzeppelin-contracts"]
+	path = nata-perp-contracts/lib/openzeppelin-contracts
+	url = https://github.com/openzeppelin/openzeppelin-contracts
