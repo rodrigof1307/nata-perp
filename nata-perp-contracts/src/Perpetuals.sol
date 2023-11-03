@@ -204,4 +204,12 @@ contract Perpetuals is Ownable, IPerpetuals {
     function isTokenValid(address _token) external view returns (bool) {
         return allowedTokens.contains(_token);
     }
+
+    function getUserTokenLiquidity(address _user, address _token) external view returns (uint256) {
+        return liquidityPerUser[_user][_token];
+    }
+
+    function getTokenLiquidity(address _token) external view returns (Liquidity memory) {
+        return totalLiquidity[_token];
+    }
 }

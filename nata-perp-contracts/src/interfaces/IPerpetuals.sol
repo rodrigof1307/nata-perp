@@ -17,17 +17,17 @@ interface IPerpetuals {
         bool closed;
     }
 
-    event LiquidityDeposited(address indexed user, address indexed token, uint256 amount);
-    event LiquidityWithdrawed(address indexed user, address indexed token, uint256 amount);
-    event PositionOpened(address indexed user, bytes32 indexed id);
-    event CollateralIncreased(address indexed user, bytes32 indexed id, uint256 newCollateral);
-    event SizeIncreased(address indexed user, bytes32 indexed id, uint256 newSize);
-
     // the liquidity available can be calculated by total liquidity - open interest
     struct Liquidity {
         uint256 total; // total liquidity deposited (includes reserved and available liquidity)
         uint256 openInterest; // liquidity being used in positions aka. open interest
     }
+
+    event LiquidityDeposited(address indexed user, address indexed token, uint256 amount);
+    event LiquidityWithdrawed(address indexed user, address indexed token, uint256 amount);
+    event PositionOpened(address indexed user, bytes32 indexed id);
+    event CollateralIncreased(address indexed user, bytes32 indexed id, uint256 newCollateral);
+    event SizeIncreased(address indexed user, bytes32 indexed id, uint256 newSize);
 
     // governance functions
     function setAllowedTokens(address[] calldata _allowedTokens) external;                                                      
