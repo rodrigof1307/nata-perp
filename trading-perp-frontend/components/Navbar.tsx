@@ -33,9 +33,7 @@ const Navbar: FC = ({}) => {
           Liquidation
         </Link>
       </div>
-      <button className="rounded-lg bg-orange-600 px-4 py-2 font-semibold text-white">
-        Connect
-      </button>
+      <w3m-button />
     </div>
   );
 };

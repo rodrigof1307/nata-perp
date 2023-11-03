@@ -4,7 +4,7 @@ interface LiquidityPoolProps {}
 
 const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
   return (
-    <div className="font-semibold text-orange-500">LiquidityPool page</div>
+    <div className="font-semibold text-orange-500">Liquidity Pool page</div>
   );
 };
 
