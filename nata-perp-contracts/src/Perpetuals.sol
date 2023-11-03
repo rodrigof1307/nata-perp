@@ -72,7 +72,7 @@ contract Perpetuals is Ownable, IPerpetuals {
     function withdrawLiquidity(address _token, uint256 _liquidityAmount) external {
         require(_liquidityAmount != 0, "Can't deposited zero liquidity");
         require(allowedTokens.contains(_token), "Token not allowed");
-        require(_liquidityAmount < liquidityPerUser[msg.sender][_token], "Not enough liquidity");
+        require(_liquidityAmount <= liquidityPerUser[msg.sender][_token], "Not enough liquidity");
         
         // check if there's enough liquidity for the user to withdraw
         Liquidity memory liquidity = totalLiquidity[_token];
@@ -203,5 +203,13 @@ contract Perpetuals is Ownable, IPerpetuals {
 
     function isTokenValid(address _token) external view returns (bool) {
         return allowedTokens.contains(_token);
+    }
+
+    function getUserTokenLiquidity(address _user, address _token) external view returns (uint256) {
+        return liquidityPerUser[_user][_token];
+    }
+
+    function getTokenLiquidity(address _token) external view returns (Liquidity memory) {
+        return totalLiquidity[_token];
     }
 }
