@@ -17,6 +17,12 @@ interface IPerpetuals {
         bool closed;
     }
 
+    struct StakedLiquidity {
+        uint256 amount;
+        uint256 lastStakedTimestamp;
+        uint256 reward;
+    }
+
     struct Liquidity {
         uint256 total; // total liquidity deposited
         uint256 openInterest; // liquidity being used in positions
@@ -25,12 +31,12 @@ interface IPerpetuals {
     // events
     event LiquidityDeposited(address indexed user, address indexed token, uint256 amount);
     event LiquidityWithdrawed(address indexed user, address indexed token, uint256 amount);
-    event PositionOpened(address indexed user, bytes32 indexed id);
+    event PositionOpened(address indexed user, bytes32 indexed id, uint256 chainid);
     event PositionClosed(address indexed user, bytes32 indexed id);
-    event CollateralIncreased(address indexed user, bytes32 indexed id, uint256 collateralIncreased);
-    event CollateralDecreased(address indexed user, bytes32 indexed id, uint256 collateralDecreased);
-    event SizeIncreased(address indexed user, bytes32 indexed id, uint256 sizeIncreased);
-    event SizeDecreased(address indexed user, bytes32 indexed id, uint256 sizeDecreased, int256 realizedPnl);
+    event CollateralIncreased(address indexed user, bytes32 indexed id, uint256 newCollateral);
+    event CollateralDecreased(address indexed user, bytes32 indexed id, uint256 newCollateral);
+    event SizeIncreased(address indexed user, bytes32 indexed id, uint256 newSize);
+    event SizeDecreased(address indexed user, bytes32 indexed id, uint256 newSize, int256 realizedPnl);
     event FeesClaimed(address indexed user, uint256 feeWithdrawn);
     event UserLiquidated(address indexed user, bytes32 indexed id, address liquidator);
 
@@ -58,6 +64,6 @@ interface IPerpetuals {
 
     // getters
     function isTokenValid(address _token) external view returns (bool);
-    function getUserTokenLiquidity(address _user, address _token) external view returns (uint256);
+    function getUserTokenLiquidity(address _user, address _token) external view returns (StakedLiquidity memory);
     function getTokenLiquidity(address _token) external view returns (Liquidity memory);
 }
