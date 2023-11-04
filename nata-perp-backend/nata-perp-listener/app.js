@@ -1,128 +1,109 @@
-// libs
 const http = require('http') 
 const ethers = require("ethers")
-// port
+const axios = require("axios")
 const port = 8080
-// nata perp contract address
-const nataPerpContractAddress = "0x975C2B5260921bE6e08A89feC8108792Cb1F1563"
-// Events
-// const LiquidityDeposited = ethers.utils.id("LiquidityDeposited(address,address,uint256)")
-// const LiquidityWithdrawed = ethers.utils.id("LiquidityWithdrawed(address,address,amount)")
-const PositionOpened = ethers.utils.id("PositionOpened(address,bytes32)")
-const PositionClosed = ethers.utils.id("PositionClosed(address,bytes32)")
-const CollateralIncreased = ethers.utils.id("CollateralIncreased(address,bytes32,uint256)")
-const CollateralDecreased = ethers.utils.id("CollateralDecreased(address,bytes32,uint256)")
-const SizeIncreased = ethers.utils.id("SizeIncreased(address,bytes32,uint256)")
-const SizeDecreased = ethers.utils.id("SizeDecreased(address,bytes32,uint256,int256)")
-// const FeesClaimed = ethers.utils.id("FeesClaimed(address,uint256)")
-// provider
 const provider = ethers.getDefaultProvider("https://polygonzkevm-testnet.g.alchemy.com/v2/osucqkh--UPxbR9GsVaiGp1FJ98ITMjJ")
-// filters
-// const filterLiquidityDeposited = {
-//   address: nataPerpContractAddress,
-//   topics: [
-//     LiquidityDeposited
-//   ]
-// }
-// const filterLiquidityWithdrawed = {
-//   address: nataPerpContractAddress,
-//   topics: [
-//     LiquidityWithdrawed
-//   ]
-// }
-const filterPositionOpened = {
-  address: nataPerpContractAddress,
-  topics: [
-    PositionOpened
-  ]
-}
-const filterPositionClosed = {
-  address: nataPerpContractAddress,
-  topics: [
-    PositionClosed
-  ]
-}
-const filterCollateralIncreased = {
-  address: nataPerpContractAddress,
-  topics: [
-    CollateralIncreased,
-  ]
-}
-const filterCollateralDecreased = {
-  address: nataPerpContractAddress,
-  topics: [
-    CollateralDecreased
-  ]
-}
-const filterSizeIncreased = {
-  address: nataPerpContractAddress,
-  topics: [
-    SizeIncreased
-  ]
-}
-const filterSizeDecreased = {
-  address: nataPerpContractAddress,
-  topics: [
-    SizeDecreased
-  ]
-}
-// const filterFeesClaimed = {
-//   address: nataPerpContractAddress,
-//   topics: [
-//     FeesClaimed
-//   ]
-// }
+const nataPerpContractAddress = "0x74CA2C75bC0A4e8B20A3904Be9f4d4d20e918378"
+const nataPerpAbi = [
+  "function positions(address, bytes32) view returns (address token, uint256 timestamp, uint256 size, uint256 collateral, uint256 price, uint8 posType, bool closed)",
+  "event PositionOpened(address indexed user, bytes32 indexed id)",
+  "event PositionClosed(address indexed user, bytes32 indexed id)",
+  "event CollateralIncreased(address indexed user, bytes32 indexed id, uint256 collateralIncreased)",
+  "event CollateralDecreased(address indexed user, bytes32 indexed id, uint256 collateralDecreased)",
+  "event SizeIncreased(address indexed user, bytes32 indexed id, uint256 sizeIncreased)",
+  "event SizeDecreased(address indexed user, bytes32 indexed id, uint256 sizeDecreased, int256 realizedPnl)"
+]
+const nataPerpContract = new ethers.Contract(nataPerpContractAddress, nataPerpAbi, provider);
 
 // Create a server object: 
-const server = http.createServer(() => {}).listen(port, () => {
+http.createServer(() => {}).listen(port, (error) => {
   if (error) {
     console.log('Something went wrong', error); 
   }
-  else {
-    // provider.on(filterLiquidityDeposited, handleLiquidityDeposited) 
-    // provider.on(filterLiquidityWithdrawed, handleLiquidityWithdrawed) 
-    provider.on(filterPositionOpened, handlePositionOpened) 
-    provider.on(filterPositionClosed, handlePositionClosed) 
-    provider.on(filterCollateralIncreased, handleCollateralIncreased) 
-    provider.on(filterCollateralDecreased, handleCollateralDecreased) 
-    provider.on(filterSizeIncreased, handleSizeIncreased) 
-    provider.on(filterSizeDecreased, handleSizeDecreased) 
-    // provider.on(filterFeesClaimed, handleFeesClaimed)
+  else { 
+    nataPerpContract.on("PositionOpened", handlePositionOpened)
+    nataPerpContract.on("PositionClosed", handlePositionClosed)
+    nataPerpContract.on("CollateralIncreased", handleCollateralIncreased)
+    nataPerpContract.on("CollateralDecreased", handleCollateralDecreased)
+    nataPerpContract.on("SizeIncreased", handleSizeIncreased)
+    nataPerpContract.on("SizeDecreased", handleSizeDecreased)
   }
 })
 
-// const handleLiquidityDeposited = () => {
-
-// }
-
-// const handleLiquidityWithdrawed = () => {
-
-// }
-
-const handlePositionOpened = (log, event) => {
+const handlePositionOpened = async (user, id, event) => {
   // handle event and update db
+
+  console.log("POSITION OPENED");
+  console.log(`user: ${user}`);
+  console.log(`id: ${id}`);
+  let position = await nataPerpContract.positions(user, id)
+  console.log("POSITION:")
+  console.log(`token: ${position["token"]}`);
+  console.log(`timestamp: ${new Date(parseInt(position["timestamp"]) * 1000)}`);
+  console.log(`size: ${parseFloat(ethers.utils.formatEther(position["size"]))}`);
+  console.log(`collateral: ${parseFloat(ethers.utils.formatEther(position["collateral"]))}`);
+  console.log(`price: ${parseFloat(ethers.utils.formatUnits(position["price"], 18))}`);
+  console.log(`posType: ${position["posType"] == 0 ? "LONG" : "SHORT"}`);
+  console.log(`closed: ${position["closed"]}`);
+
+  axios.post('http://localhost:3000/positions', {
+    position: {
+      positionId: id,
+      user: user,
+      token: position["token"],
+      timestamp: new Date(parseInt(position["timestamp"]) * 1000),
+      size: parseFloat(ethers.utils.formatEther(position["size"])),
+      collateral: parseFloat(ethers.utils.formatEther(position["collateral"])),
+      price: parseFloat(ethers.utils.formatUnits(position["price"], 18)),
+      posType: position["posType"] == 0 ? "LONG" : "SHORT",
+      closed: position["closed"],
+      liquidated: false
+    }
+  })
+  .then(function (response) {
+    console.log(response);
+  })
+  .catch(function (error) {
+    console.log(error);
+  });
 }
 
-const handlePositionClosed = (log, event) => {
+const handlePositionClosed = (user, id, event) => {
   // handle event and update db
+  console.log("POSITION CLOSED");
 }
 
-const handleCollateralIncreased = (log, event) => {
+const handleCollateralIncreased = (user, id, collateralIncreased, event) => {
   // handle event and update db
+  console.log("COLLATERAL INCREASED");
 }
 
-const handleCollateralDecreased = (log, event) => {
+const handleCollateralDecreased = (user, id, collateralDecreased, event) => {
   // handle event and update db
+  console.log("COLLATERAL DECREASED");
 }
 
-const handleSizeIncreased = (log, event) => {
+const handleSizeIncreased = (user, id, sizeIncreased, event) => {
   // handle event and update db
+  console.log("SIZE INCREASED");
 }
 
-const handleSizeDecreased = (log, event) => {
+const handleSizeDecreased = (user, id, sizeDecreased, realizedPnl, event) => {
   // handle event and update db  
+  console.log("SIZE DECREASED");
 }
 
-// const handleFeesClaimed = () => {
 
-// }
+/*
+  - Position
+    - token       (string)
+    - timestamp   (time)
+    - size        (float)
+    - collateral  (float)
+    - price       (float)
+    - posType     (string)
+    - closed      (bool)
+    - id          (string)
+    - user        (string)
+    - liquidated  (bool)
+*/
