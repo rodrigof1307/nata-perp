@@ -14,11 +14,27 @@ import { Button } from "@/components/ui/button";
 import MainTokenInfo from "@/components/MainTokenInfo";
 import Chart from "@/components/Chart";
 import Box from "@/components/ui/Box";
+import { cn } from "@/lib/utils";
+import { useForm } from "react-hook-form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface TradingProps {}
 
+enum Position {
+  Long,
+  Short,
+}
+
 const Trading: FC<TradingProps> = ({}) => {
   const [selectedCryptoID, setSelectedCryptoID] = useState("ethereum");
+  const [position, setPosition] = useState(Position.Long);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
 
   return (
     <div className="flex flex-1 flex-col items-center justify-between p-12">
@@ -28,8 +44,92 @@ const Trading: FC<TradingProps> = ({}) => {
       />
       <div className="mt-4 flex w-full flex-row items-center justify-between">
         <Chart selectedCryptoID={selectedCryptoID} />
-        <Box className="h-[550px] w-[350px]">
-          <h1>Teste</h1>
+        <Box className="flex h-[550px] w-[350px] flex-col items-center justify-start p-4">
+          <div className="mb-4 flex w-full flex-row items-center justify-between gap-2 rounded-lg bg-zinc-700 p-1.5">
+            <button
+              className={cn(
+                "rounded-lg flex-1 hover:bg-orange-600/30 bg-zinc-700 text-center text-white py-2",
+                position == Position.Long
+                  ? "bg-orange-600 hover:bg-orange-600"
+                  : ""
+              )}
+              onClick={() => setPosition(Position.Long)}
+            >
+              Long
+            </button>
+            <button
+              className={cn(
+                "rounded-lg flex-1 hover:bg-orange-600/30 bg-zinc-700 text-center text-white py-2",
+                position == Position.Short
+                  ? "bg-orange-600 hover:bg-orange-600"
+                  : ""
+              )}
+              onClick={() => setPosition(Position.Short)}
+            >
+              Short
+            </button>
+          </div>
+          <form
+            onSubmit={handleSubmit((data) => {
+              console.log(data);
+            })}
+            className="flex w-full flex-1 flex-col items-center justify-between"
+          >
+            <div className="w-full flex-1">
+              <Label htmlFor="collateral" className="mb-4">
+                Collateral
+              </Label>
+              <Input
+                {...register("collateral", {
+                  required: "This is required",
+                  min: {
+                    value: 0,
+                    message: "Minimum collateral is 0",
+                  },
+                })}
+                placeholder="Collateral"
+              />
+              {errors.collateral?.message ? (
+                <p className="h-6 font-light text-red-600">
+                  {errors.collateral.message.toString()}
+                </p>
+              ) : (
+                <div className="h-6" />
+              )}
+              <Label htmlFor="leverage" className="mb-4 mt-6">
+                Leverage
+              </Label>
+              <Input
+                {...register("leverage", {
+                  required: "This is required",
+                  min: {
+                    value: 1.1,
+                    message: "Minimum leverage is 1.1",
+                  },
+                  max: {
+                    value: 20,
+                    message: "Maximum leverage is 20",
+                  },
+                })}
+                placeholder="Leverage"
+              />
+              {errors.leverage?.message ? (
+                <p className="h-6 font-light text-red-600">
+                  {errors.leverage.message.toString()}
+                </p>
+              ) : (
+                <div className="h-6" />
+              )}
+            </div>
+            <Button
+              variant={"full"}
+              className="w-full"
+              size={"lg"}
+              type="submit"
+            >
+              Open Position
+            </Button>
+          </form>
         </Box>
       </div>
     </div>

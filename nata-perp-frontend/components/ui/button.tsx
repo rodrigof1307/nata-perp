@@ -11,8 +11,7 @@ const buttonVariants = cva(
       variant: {
         default:
           "border-2 border-orange-600 bg-zinc-600/20 text-orange-600 hover:bg-zinc-600/10",
-        destructive:
-          "border-2 border-red-600 bg-zinc-600/20 text-orange-600 hover:bg-zinc-600/10",
+        full: "bg-orange-600 text-white hover:bg-orange-600/80",
       },
       size: {
         default: "rounded-md px-4 py-2 text-sm",
