@@ -18,7 +18,7 @@ contract PerpetualsTest is Test {
 
     function setUp() public {
         vm.startPrank(owner);
-        perps = new Perpetuals(4000, 1000); // 40% threshold and 10x leverage
+        perps = new Perpetuals(4000, 1000, 500); // 40% threshold and 10x leverage
         weth = new ERC20Mock();
         wbtc = new ERC20Mock();
 
