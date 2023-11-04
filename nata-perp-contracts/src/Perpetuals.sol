@@ -138,6 +138,27 @@ contract Perpetuals is Ownable, IPerpetuals {
         return id;
     }
 
+    function closePosition(address _token, bytes32 _positionId) external {
+        Position memory position = positions[msg.sender][_positionId];
+        require(position.token == _token, "Invalid position");
+        require(!position.closed, "Position already closed");
+
+        positions[msg.sender][_positionId].closed = true;
+        totalLiquidity[_token].openInterest -= position.size;
+        int256 pnl = _calculatePnl(msg.sender, _positionId);
+
+        if (pnl > 0) {
+            IERC20(_token).safeTransfer(msg.sender, pnl.toUint256() + position.collateral);
+        } else {
+            uint256 maxPnl = pnl.toUint256() > position.collateral ? position.collateral : pnl.toUint256();
+            uint256 remainingCollateral = position.collateral - maxPnl;
+
+            fees[_token] += maxPnl;
+
+            IERC20(_token).safeTransfer(msg.sender, remainingCollateral);
+        }
+    }
+
     function increaseCollateral(address _token, bytes32 _positionId, uint256 _collateralToDeposit) external {
         require(_collateralToDeposit != 0, "Collateral can't be zero");
         require(allowedTokens.contains(_token), "Token not allowed");
