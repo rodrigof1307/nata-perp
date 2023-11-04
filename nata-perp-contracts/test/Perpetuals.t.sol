@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Test, console2} from "forge-std/Test.sol";
 import {Perpetuals} from "../src/Perpetuals.sol";
-
+import {IPerpetuals} from "../src/interfaces/IPerpetuals.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
 contract PerpetualsTest is Test {
@@ -28,25 +28,25 @@ contract PerpetualsTest is Test {
         address[] memory tokens = new address[](1);
         tokens[0] = address(weth);
 
-        // perps.setAllowedTokens(tokens);
+        perps.setAllowedTokens(tokens, tokens);
         assertEq(perps.isTokenValid(address(weth)), true);
 
         vm.stopPrank();
     }
 
-    // function testSetAllowedTokens() public {
-    //     vm.startPrank(owner);
-    //     address[] memory tokens = new address[](1);
-    //     tokens[0] = address(wbtc);
-    //     perps.setAllowedTokens(tokens);
-    //     assertEq(perps.isTokenValid(address(wbtc)), true);
-    //     vm.stopPrank();
+    function testSetAllowedTokens() public {
+        vm.startPrank(owner);
+        address[] memory tokens = new address[](1);
+        tokens[0] = address(wbtc);
+        perps.setAllowedTokens(tokens, tokens);
+        assertEq(perps.isTokenValid(address(wbtc)), true);
+        vm.stopPrank();
 
-    //     vm.startPrank(trader);
-    //     vm.expectRevert();
-    //     perps.setAllowedTokens(tokens);
-    //     vm.stopPrank();
-    // }
+        vm.startPrank(trader);
+        vm.expectRevert();
+        perps.setAllowedTokens(tokens, tokens);
+        vm.stopPrank();
+    }
 
     function testSetMaxLiquidityThreshold() public {
         vm.startPrank(owner);
@@ -104,9 +104,40 @@ contract PerpetualsTest is Test {
         vm.stopPrank();
     }
 
-    function testOpenPosition() public {}
+    function testOpenPosition() public {
+        //Só conseguimos abrir posição se tivermos collateral depositado
+        testDepositLiquidity();
 
-    function testIncreaseCollateral() public {} // not ready to test
+        vm.startPrank(trader);
+        bytes32 id = perps.openPosition(address(weth), 1 ether, 2 ether, IPerpetuals.PositionType.LONG);
+    
+        //leverage tem de ser diferente de 0. (test size = 0 && collateral = 0)
+        vm.expectRevert("Size can't be zero");
+        perps.openPosition(address(weth), 0 ether, 0 ether, IPerpetuals.PositionType.LONG);
+        vm.expectRevert("Collateral can't be zero");
+        perps.openPosition(address(weth), 0 ether, 0 ether, IPerpetuals.PositionType.SHORT);
+    
+        //A Liquidez total de todas as posições abertas do token deve ser += size    
+        assertEq(perps.getTokenLiquidity(address(weth)).openInterest >= perps.getUserPosition(trader, id).size, true);
+
+        vm.stopPrank();
+    }
+
+    function testIncreaseCollateral() public {
+        vm.startPrank(trader);
+
+        //crio uma posição que sei o id
+        bytes32 id = perps.openPosition(address(weth), 1 ether, 1 ether, IPerpetuals.PositionType.LONG);
+        //adiciono 1 ether ao colateral da posição do id
+        perps.increaseCollateral(address(weth), id , 1 ether);
+        //trader não pode aumentar 0 ether de collateral
+        vm.expectRevert("O valor nao esta autorizado");
+        perps.increaseCollateral(address(weth), id, 0 ether);
+        //Atualização da liquidez do token com o valor do aumento do collateral
+        assertEq(perps.getTokenLiquidity(address(weth)).total, 2 ether);   
+
+        vm.stopPrank();
+    } 
 
     function testIncreaseSize() public {}
 }
