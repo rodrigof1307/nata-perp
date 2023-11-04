@@ -23,6 +23,8 @@ contract Perpetuals is Ownable, IPerpetuals {
     mapping(address => mapping(address => uint256)) public liquidityPerUser;
     // token => liquidity
     mapping(address => Liquidity) public totalLiquidity;
+    // token => fees
+    mapping(address => uint256) public fees;
 
     // tokens that can be used in perps
     EnumerableSet.AddressSet private allowedTokens;
@@ -159,7 +161,7 @@ contract Perpetuals is Ownable, IPerpetuals {
         Position memory position = positions[msg.sender][_positionId];
         require(position.token != address(0), "Invalid position");
         require(!position.closed, "Position already closed");
-        uint256 leverage = position.size / (position.collateral - _collateralToWithdraw);
+        uint256 leverage = _calculateLeverage(position.size, (position.collateral - _collateralToWithdraw));
         require(leverage <= maxLeveragePerPosition, "Leverage too high");
 
         positions[msg.sender][_positionId].collateral -= _collateralToWithdraw;
@@ -168,6 +170,18 @@ contract Perpetuals is Ownable, IPerpetuals {
 
         IERC20(_token).safeTransfer(msg.sender, _collateralToWithdraw);
     }
+
+    // function liquidate(address _trader, bytes32 _positionId) external {
+    //     Position storage position = positions[_trader][_positionId];
+    //     require(position.token != address(0), "Invalid position");
+    //     require(!position.closed, "Position already closed");
+    //     uint256 leverage = _calculateLeverage(position.size, position.collateral);
+    //     require(leverage > maxLeveragePerPosition, "Position isn't liquidatable");
+
+    //     position.closed = true;
+    //     int256 pnl = _calculatePnL(_trader, _positionId);
+    //     uint256 fee = (pnl.toUint256() < position.collateral) ? pnl.toUint256() : position.collateral;
+    // }
 
     function increaseSize(address _token, bytes32 _positionId, uint256 _sizeAmountToIncrease) external {
         require(allowedTokens.contains(_token), "Token not allowed");

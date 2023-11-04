@@ -55,7 +55,7 @@ interface IPerpetuals {
     // function decreaseSize(address _token, bytes32 _positionId, uint256 _sizeAmountToIncrease) external;
     function increaseSize(address _token, bytes32 _positionId, uint256 _sizeAmountToDecrease) external;
 
-    // function liquidate(address _trader, uint256 _positionId) external; // the liquidator fee will a % of the remaining collateral
+    // function liquidate(address _trader, bytes32 _positionId) external; // the liquidator fee will a % of the remaining collateral
 
     // getters
     function isTokenValid(address _token) external view returns (bool);
