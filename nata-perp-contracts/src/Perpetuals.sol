@@ -5,6 +5,7 @@ import {IPerpetuals} from "./interfaces/IPerpetuals.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IChronicle} from "./interfaces/IChronicle.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
@@ -27,6 +28,8 @@ contract Perpetuals is Ownable, IPerpetuals {
     mapping(address => Liquidity) public totalLiquidity;
     // token => fees
     mapping(address => uint256) public fees;
+    // token => oracle
+    mapping(address => address) public oracles;
 
     // tokens that can be used in perps
     EnumerableSet.AddressSet private allowedTokens;
@@ -44,14 +47,17 @@ contract Perpetuals is Ownable, IPerpetuals {
         liquidatorFee = _liquidatorFee;
     }
 
-    function setAllowedTokens(address[] calldata _allowedTokens) external onlyOwner {
+    function setAllowedTokens(address[] calldata _allowedTokens, address[] calldata _oracles) external onlyOwner {        
         uint256 length = _allowedTokens.length;
         require(length != 0, "Array length can't be zero");
+        require(_oracles.length == _allowedTokens.length, "Length mismatch");
 
         for (uint256 i; i < length; ++i) {
             address token = _allowedTokens[i];
             require(!allowedTokens.contains(token), "Token already added");
+            require(_oracles[i] != address(0), "Invalid oracle");
             allowedTokens.add(token);
+            oracles[token] = _oracles[i];
         }
     }
 
@@ -314,8 +320,10 @@ contract Perpetuals is Ownable, IPerpetuals {
         return (_size * 100) / _collateral;
     }
 
-    function _getTokenPrice(address /*_token*/ ) internal pure returns (uint256) {
-        return 10 ** 18; // TODO integrate chronicle oracle
+    function _getTokenPrice(address _token) internal view returns (uint256) {
+        address oracle = oracles[_token];
+        uint256 tokenPrice = IChronicle(oracle).read();
+        return tokenPrice;
     }
 
     function isTokenValid(address _token) external view returns (bool) {
