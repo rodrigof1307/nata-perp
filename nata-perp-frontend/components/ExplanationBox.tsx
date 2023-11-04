@@ -17,7 +17,7 @@ const ExplanationBox: FC<ExplanationBoxProps> = ({
   href,
 }) => {
   return (
-    <Box className="flex h-[65vh] w-[28%] flex-col justify-between rounded-2xl py-6 text-center">
+    <Box className="flex h-[55vh] w-[28%] flex-col justify-between rounded-2xl p-6 text-center">
       <div>
         <h1 className="mb-4 text-3xl font-semibold text-white">{title}</h1>
         <p className="text-lg font-light text-white">{description}</p>

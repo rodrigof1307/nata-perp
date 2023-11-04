@@ -4,21 +4,21 @@ export default function Home() {
   return (
     <main className="flex flex-1 items-center justify-around">
       <ExplanationBox
-        title="Trade"
-        description="Trade on Nata"
-        buttonTitle="Trade"
+        title="Trade on Natas Perp"
+        description={`Create your Natas Perpetual position.\n\nUsers can enter a long or a short position, and close it when they want to with up to 20x leverage.`}
+        buttonTitle="Start Trading"
         href="/trading"
       />
       <ExplanationBox
-        title="Liquidity Pool"
-        description="Provide liquidity to the Nata protocol"
-        buttonTitle="Liquidity Pool"
+        title="Be a Natas Provider"
+        description={`Earn rewards by providing liquidity on Natas\n\nProvide liquidity in various pools and receive a part of the protocol revenue.`}
+        buttonTitle="Add Liquidity"
         href="/liquidity-pool"
       />
       <ExplanationBox
-        title="Liquidation"
-        description="Liquidate positions on Nata"
-        buttonTitle="Liquidation"
+        title="Liquidate on Natas"
+        description={`Liquidate undercollateralized positions and earn rewards!\n\nThe war between traders and liquidity providers is eternal ...`}
+        buttonTitle="Liquidate positions"
         href="/liquidation"
       />
     </main>
