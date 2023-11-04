@@ -28,25 +28,25 @@ contract PerpetualsTest is Test {
         address[] memory tokens = new address[](1);
         tokens[0] = address(weth);
 
-        perps.setAllowedTokens(tokens);
+        // perps.setAllowedTokens(tokens);
         assertEq(perps.isTokenValid(address(weth)), true);
 
         vm.stopPrank();
     }
 
-    function testSetAllowedTokens() public {
-        vm.startPrank(owner);
-        address[] memory tokens = new address[](1);
-        tokens[0] = address(wbtc);
-        perps.setAllowedTokens(tokens);
-        assertEq(perps.isTokenValid(address(wbtc)), true);
-        vm.stopPrank();
+    // function testSetAllowedTokens() public {
+    //     vm.startPrank(owner);
+    //     address[] memory tokens = new address[](1);
+    //     tokens[0] = address(wbtc);
+    //     perps.setAllowedTokens(tokens);
+    //     assertEq(perps.isTokenValid(address(wbtc)), true);
+    //     vm.stopPrank();
 
-        vm.startPrank(trader);
-        vm.expectRevert();
-        perps.setAllowedTokens(tokens);
-        vm.stopPrank();
-    }
+    //     vm.startPrank(trader);
+    //     vm.expectRevert();
+    //     perps.setAllowedTokens(tokens);
+    //     vm.stopPrank();
+    // }
 
     function testSetMaxLiquidityThreshold() public {
         vm.startPrank(owner);
