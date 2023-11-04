@@ -244,6 +244,8 @@ contract Perpetuals is Ownable, IPerpetuals {
         fees[position.token] += remainingFees;
 
         IERC20(position.token).transfer(msg.sender, liquidatorFeeAmount);
+
+        emit UserLiquidated(_trader, _positionId, msg.sender);
     }
 
     function increaseSize(address _token, bytes32 _positionId, uint256 _sizeAmountToIncrease) external {
@@ -308,8 +310,10 @@ contract Perpetuals is Ownable, IPerpetuals {
             delta = position.price - _getTokenPrice(position.token);
         }
 
-        uint256 pnl = delta * position.size;
-        return pnl.toInt256();
+        uint256 pnlInDollars = delta * position.size;
+        uint256 pnlInToken = pnlInDollars / _getTokenPrice(position.token);
+        
+        return pnlInToken.toInt256();
     }
 
     function _calculateLeverage(uint256 _size, uint256 _collateral) internal pure returns (uint256) {
