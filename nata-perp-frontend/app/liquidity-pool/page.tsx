@@ -32,6 +32,14 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
   const { address: userAddress } = useAccount();
 
   useEffect(() => {
+    console.log("chainID ", chainID);
+  }, [chainID]);
+
+  useEffect(() => {
+    console.log("userAddress ", userAddress);
+  }, [userAddress]);
+
+  useEffect(() => {
     switch (chainID) {
       case 1442:
         const client1 = createPublicClient({
@@ -162,7 +170,7 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
         break;
     }
     generalRefetch();
-  }, [chainID, generalRefetch, selectedCryptoID]);
+  }, [chainID, generalRefetch, selectedCryptoID, userAddress]);
 
   useEffect(() => {
     if (!fees || !userTokenLiquidity || !tokenLiquidity) {
