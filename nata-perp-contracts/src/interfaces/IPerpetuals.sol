@@ -20,6 +20,7 @@ interface IPerpetuals {
     event LiquidityDeposited(address indexed user, address indexed token, uint256 amount);
     event LiquidityWithdrawed(address indexed user, address indexed token, uint256 amount);
     event PositionOpened(address indexed user, bytes32 indexed id);
+    event PositionClosed(address indexed user, bytes32 indexed id);
     event CollateralIncreased(address indexed user, bytes32 indexed id, uint256 collateralIncreased);
     event CollateralDecreased(address indexed user, bytes32 indexed id, uint256 collateralDecreased);
     event SizeIncreased(address indexed user, bytes32 indexed id, uint256 sizeIncreased);
