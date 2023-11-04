@@ -5,7 +5,12 @@ import { createWeb3Modal, defaultWagmiConfig } from "@web3modal/wagmi/react";
 import { useState } from "react";
 
 import { WagmiConfig as WagmiConfigOriginal, configureChains } from "wagmi";
-import { mainnet, sepolia, zkSyncTestnet, gnosisChiado } from "wagmi/chains";
+import {
+  mainnet,
+  sepolia,
+  gnosisChiado,
+  polygonZkEvmTestnet,
+} from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
 
 const wagmiMetadata = {
@@ -14,7 +19,7 @@ const wagmiMetadata = {
 };
 
 const { chains } = configureChains(
-  [sepolia, zkSyncTestnet, gnosisChiado, mainnet],
+  [polygonZkEvmTestnet, gnosisChiado],
   [publicProvider()]
 );
 

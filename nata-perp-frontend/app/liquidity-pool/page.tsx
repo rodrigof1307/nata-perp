@@ -2,12 +2,177 @@
 
 import MainTokenInfo from "@/components/MainTokenInfo";
 import { Button } from "@/components/ui/button";
-import { FC, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
+import {
+  erc20ABI,
+  useAccount,
+  useChainId,
+  useContractRead,
+  useContractWrite,
+} from "wagmi";
+import { cryptosInfo } from "@/lib/cryptosInfo";
+import { usePerpContractWrite } from "@/hooks/usePerpContractWrite";
+import { Input } from "@/components/ui/input";
+import { createPublicClient, http } from "viem";
+import { gnosis, polygonZkEvmTestnet } from "viem/chains";
+import { perpABI } from "@/lib/abi";
+import { set } from "react-hook-form";
 
 interface LiquidityPoolProps {}
 
 const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
   const [selectedCryptoID, setSelectedCryptoID] = useState("ethereum");
+  const chainID = useChainId();
+  const [tokenAddress, setTokenAddress] = useState("");
+  const [additionAmount, setAdditionAmount] = useState(0);
+  const [withdrawAmount, setWithdrawAmount] = useState(0);
+  const [perpAddress, setPerpAddress] = useState("");
+  const [publicClient, setPublicClient] = useState<any>();
+  const [userFees, setUserFees] = useState(0);
+  const { address: userAddress } = useAccount();
+
+  useEffect(() => {
+    switch (chainID) {
+      case 1442:
+        const client1 = createPublicClient({
+          chain: polygonZkEvmTestnet,
+          transport: http(),
+        });
+        setPublicClient(client1);
+        break;
+      case 10200:
+        const client2 = createPublicClient({
+          chain: gnosis,
+          transport: http(),
+        });
+        setPublicClient(client2);
+        break;
+    }
+  }, [chainID]);
+
+  const { data: fees, refetch: refetchFees } = useContractRead({
+    address: perpAddress as `0x${string}`,
+    abi: perpABI,
+    functionName: "fees",
+    args: [tokenAddress],
+  });
+
+  const { data: tokenLiquidity, refetch: refetchTokenLiquidity } =
+    useContractRead({
+      address: perpAddress as `0x${string}`,
+      abi: perpABI,
+      functionName: "getTokenLiquidity",
+      args: [tokenAddress],
+    });
+
+  const { data: userTokenLiquidity, refetch: refetchUserTokenLiquidity } =
+    useContractRead({
+      address: perpAddress as `0x${string}`,
+      abi: perpABI,
+      functionName: "getUserTokenLiquidity",
+      args: [userAddress, tokenAddress],
+    });
+
+  const { writeAsync: writeRequestApproval } = useContractWrite({
+    address: tokenAddress as `0x${string}`,
+    abi: erc20ABI,
+    functionName: "approve",
+  });
+
+  const { writeAsync: writeAddLiquidity } = usePerpContractWrite({
+    functionName: "depositLiquidity",
+    selectedCryptoID,
+  });
+
+  const { writeAsync: writeWithdrawLiquidity } = usePerpContractWrite({
+    functionName: "withdrawLiquidity",
+    selectedCryptoID,
+  });
+
+  const { writeAsync: writeClaimFees } = usePerpContractWrite({
+    functionName: "claimFees",
+    selectedCryptoID,
+  });
+
+  const addLiquidity = async () => {
+    const response1 = await writeRequestApproval({
+      args: [perpAddress as `0x${string}`, BigInt(additionAmount)],
+    });
+
+    await publicClient.waitForTransactionReceipt({
+      hash: response1.hash,
+    });
+
+    const response2 = await writeAddLiquidity({
+      args: [tokenAddress, BigInt(additionAmount)],
+    });
+
+    await publicClient.waitForTransactionReceipt({
+      hash: response2.hash,
+    });
+
+    await generalRefetch();
+  };
+
+  const withdrawLiquidity = async () => {
+    const response = await writeWithdrawLiquidity({
+      args: [tokenAddress, BigInt(withdrawAmount)],
+    });
+
+    await publicClient.waitForTransactionReceipt({
+      hash: response.hash,
+    });
+
+    await generalRefetch();
+  };
+
+  const claimFees = async () => {
+    const response = await writeClaimFees({
+      args: [tokenAddress],
+    });
+
+    await publicClient.waitForTransactionReceipt({
+      hash: response.hash,
+    });
+
+    await generalRefetch();
+  };
+
+  const generalRefetch = useCallback(async () => {
+    await Promise.all([refetchTokenLiquidity(), refetchUserTokenLiquidity()]);
+  }, [refetchTokenLiquidity, refetchUserTokenLiquidity]);
+
+  useEffect(() => {
+    if (cryptosInfo === undefined) {
+      return;
+    }
+
+    switch (chainID) {
+      case 1442:
+        // @ts-ignore
+        setTokenAddress(cryptosInfo[selectedCryptoID].wrappedTokenZKEvmAddress);
+        setPerpAddress(process.env.NEXT_PUBLIC_PERP_ADDRESS_ZK_EVM!);
+        break;
+      case 10200:
+        setTokenAddress(
+          // @ts-ignore
+          cryptosInfo[selectedCryptoID].wrappedTokenGnosisAddress
+        );
+        setPerpAddress(process.env.NEXT_PUBLIC_PERP_ADDRESS_GNOSIS!);
+        break;
+    }
+    generalRefetch();
+  }, [chainID, generalRefetch, selectedCryptoID]);
+
+  useEffect(() => {
+    if (!fees || !userTokenLiquidity || !tokenLiquidity) {
+      setUserFees(0);
+    } else {
+      setUserFees(
+        (userTokenLiquidity as any) * ((fees as any) / (tokenLiquidity as any))
+      );
+    }
+  }, [fees, tokenLiquidity, userTokenLiquidity]);
 
   return (
     <div className="flex flex-1 flex-col items-center justify-between p-12">
@@ -24,23 +189,45 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
 
             <div className="mt-20 flex w-full flex-col items-center justify-between gap-8">
               <h2 className="w-full text-left text-xl font-light text-orange-600">
-                Your Liquidity: 12345 $
+                {`Your Liquidity Contribution: ${userTokenLiquidity}`}
               </h2>
               <h2 className="w-full text-left text-xl font-light text-orange-600">
-                Your Fees: 12345 $
+                {`Your Fees: ${userFees.toFixed(2)}`}
               </h2>
             </div>
           </div>
 
           <div className="flex w-full flex-col items-center justify-start gap-6">
-            <Button size={"lg"} className="w-4/5">
-              Add Liquidity
-            </Button>
-            <Button size={"lg"} className="w-4/5">
+            <div className="flex w-full flex-row items-center justify-between gap-4">
+              <Input
+                placeholder="Amount"
+                className="h-16 w-36 border-2"
+                onChange={(event) => {
+                  setAdditionAmount(Number(event.target.value) ?? 0);
+                }}
+              />
+              <Button size={"lg"} className="flex-1" onClick={addLiquidity}>
+                Add Liquidity
+              </Button>
+            </div>
+            <div className="flex w-full flex-row items-center justify-between gap-4">
+              <Input
+                onChange={(event) => {
+                  setWithdrawAmount(Number(event.target.value) ?? 0);
+                }}
+                placeholder="Amount"
+                className="h-16 w-36 border-2"
+              />
+              <Button
+                size={"lg"}
+                className="flex-1"
+                onClick={withdrawLiquidity}
+              >
+                Withdraw Liquidity
+              </Button>
+            </div>
+            <Button size={"lg"} className="w-full" onClick={claimFees}>
               Claim fees
-            </Button>
-            <Button size={"lg"} className="w-4/5">
-              Withdrawl Liquidity
             </Button>
           </div>
         </div>
@@ -50,10 +237,10 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
           </h1>
           <div className="mt-20 flex w-full flex-col items-center justify-between gap-8">
             <h2 className="w-full text-left text-xl font-light text-orange-600">
-              Total Pool Size: 12345 $
+              {`Total Pool Liquidity: ${(tokenLiquidity as any)?.total ?? 0}`}
             </h2>
             <h2 className="w-full text-left text-xl font-light text-orange-600">
-              Open Interest: 12345 $
+              {`Open Interest: ${(tokenLiquidity as any)?.openInterest ?? 0}`}
             </h2>
           </div>
         </div>
