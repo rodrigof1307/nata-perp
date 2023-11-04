@@ -310,8 +310,10 @@ contract Perpetuals is Ownable, IPerpetuals {
             delta = position.price - _getTokenPrice(position.token);
         }
 
-        uint256 pnl = delta * position.size;
-        return pnl.toInt256();
+        uint256 pnlInDollars = delta * position.size;
+        uint256 pnlInToken = pnlInDollars / _getTokenPrice(position.token);
+        
+        return pnlInToken.toInt256();
     }
 
     function _calculateLeverage(uint256 _size, uint256 _collateral) internal pure returns (uint256) {
