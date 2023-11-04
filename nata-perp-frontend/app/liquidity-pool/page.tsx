@@ -81,6 +81,14 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
       args: [userAddress, tokenAddress],
     });
 
+  useEffect(() => {
+    console.log("tokenAddress ", tokenAddress);
+  }, [tokenAddress]);
+
+  useEffect(() => {
+    console.log("tokenLiquidity ", tokenLiquidity);
+  }, [tokenLiquidity]);
+
   const { writeAsync: writeRequestApproval } = useContractWrite({
     address: tokenAddress as `0x${string}`,
     abi: erc20ABI,
@@ -169,7 +177,8 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
         setPerpAddress(process.env.NEXT_PUBLIC_PERP_ADDRESS_GNOSIS!);
         break;
     }
-    generalRefetch();
+
+    generalRefetch().then(() => console.log("finished refetching"));
   }, [chainID, generalRefetch, selectedCryptoID, userAddress]);
 
   useEffect(() => {
