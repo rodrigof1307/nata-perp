@@ -35,6 +35,7 @@ interface IPerpetuals {
     function setAllowedTokens(address[] calldata _allowedTokens) external;
     function setMaxLiquidityThreshold(uint256 _maxLiquidityThreshold) external;
     function setMaxLeveragePerPosition(uint256 _maxLeveragePerPosition) external;
+    function setLiquidatorFee(uint256 _liquidatorFee) external;
 
     // liquidity providers functions
     function depositLiquidity(address _token, uint256 _liquidityAmount) external;
@@ -49,7 +50,7 @@ interface IPerpetuals {
     function increaseCollateral(address _token, bytes32 _positionId, uint256 _collateralToDeposit) external;
     function decreaseSize(address _token, bytes32 _positionId, uint256 _sizeAmountToIncrease) external;
     function increaseSize(address _token, bytes32 _positionId, uint256 _sizeAmountToDecrease) external;
-    // function liquidate(address _trader, uint256 _positionId) external; // the liquidator fee will a % of the remaining collateral
+    function liquidate(address _trader, uint256 _positionId) external; // the liquidator fee will a % of the remaining collateral
 
     // getters
     function isTokenValid(address _token) external view returns (bool);
