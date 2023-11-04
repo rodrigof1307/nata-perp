@@ -169,6 +169,8 @@ contract Perpetuals is Ownable, IPerpetuals {
         totalLiquidity[_token].openInterest -= position.size;
         int256 pnl = _calculatePnl(msg.sender, _positionId);
 
+        emit PositionClosed(msg.sender, _positionId);
+
         if (pnl > 0) {
             IERC20(_token).safeTransfer(msg.sender, pnl.toUint256() + position.collateral);
         } else {
