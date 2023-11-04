@@ -17,14 +17,15 @@ contract Perpetuals is Ownable, IPerpetuals {
 
     uint256 public maxLiquidityThreshold; // 4000 bps or 40%
     uint256 public maxLeveragePerPosition; // 2000 or 20x
-    uint256 public liquidatorFee;
+    uint256 public liquidatorFee; // 500 or 5%
+    uint256 public feeDistributionRate; // 1% a day or 100bps
     uint256 private nonce;
 
     // user => positionId => Position
     mapping(address => mapping(bytes32 => Position)) public positions;
-    // user => token => liquidity
-    mapping(address => mapping(address => uint256)) public liquidityPerUser;
-    // token => liquidity
+    // user => token => StakedLiquidity
+    mapping(address => mapping(address => StakedLiquidity)) public liquidityPerUser;
+    // token => Liquidity
     mapping(address => Liquidity) public totalLiquidity;
     // token => fees
     mapping(address => uint256) public fees;
@@ -34,12 +35,16 @@ contract Perpetuals is Ownable, IPerpetuals {
     // tokens that can be used in perps
     EnumerableSet.AddressSet private allowedTokens;
 
-    constructor(uint256 _maxLiquidityThreshold, uint256 _maxLeveragePerPosition, uint256 _liquidatorFee)
-        Ownable(msg.sender)
-    {
+    constructor(
+        uint256 _maxLiquidityThreshold,
+        uint256 _maxLeveragePerPosition,
+        uint256 _liquidatorFee,
+        uint256 _feeDistributionRate
+    ) Ownable(msg.sender) {
         maxLiquidityThreshold = _maxLiquidityThreshold;
         maxLeveragePerPosition = _maxLeveragePerPosition;
         liquidatorFee = _liquidatorFee;
+        feeDistributionRate = _feeDistributionRate;
     }
 
     function setLiquidatorFee(uint256 _liquidatorFee) external onlyOwner {
@@ -47,7 +52,12 @@ contract Perpetuals is Ownable, IPerpetuals {
         liquidatorFee = _liquidatorFee;
     }
 
-    function setAllowedTokens(address[] calldata _allowedTokens, address[] calldata _oracles) external onlyOwner {        
+    function setDistributionRate(uint256 _feeDistributionRate) external onlyOwner {
+        require(_feeDistributionRate <= 500, "Fee distribution rate too high");
+        feeDistributionRate = _feeDistributionRate;
+    }
+
+    function setAllowedTokens(address[] calldata _allowedTokens, address[] calldata _oracles) external onlyOwner {
         uint256 length = _allowedTokens.length;
         require(length != 0, "Array length can't be zero");
         require(_oracles.length == _allowedTokens.length, "Length mismatch");
@@ -75,8 +85,10 @@ contract Perpetuals is Ownable, IPerpetuals {
         require(_liquidityAmount != 0, "Can't deposited zero liquidity");
         require(allowedTokens.contains(_token), "Token not allowed");
 
-        // update the liquidity provided by the user for the given token
-        liquidityPerUser[msg.sender][_token] += _liquidityAmount;
+        StakedLiquidity storage liquidityStakedByUser = liquidityPerUser[msg.sender][_token];
+        liquidityStakedByUser.amount += _liquidityAmount;
+        liquidityStakedByUser.lastStakedTimestamp = block.timestamp;
+        liquidityStakedByUser.reward += _calculateStakingRewards(msg.sender, _token);
 
         // update total liquidity of the given token
         totalLiquidity[_token].total += _liquidityAmount;
@@ -90,7 +102,7 @@ contract Perpetuals is Ownable, IPerpetuals {
     function withdrawLiquidity(address _token, uint256 _liquidityAmount) external {
         require(_liquidityAmount != 0, "Can't deposited zero liquidity");
         require(allowedTokens.contains(_token), "Token not allowed");
-        require(_liquidityAmount <= liquidityPerUser[msg.sender][_token], "Not enough liquidity");
+        require(_liquidityAmount <= liquidityPerUser[msg.sender][_token].amount, "Not enough liquidity");
 
         // check if there's enough liquidity for the user to withdraw
         Liquidity memory liquidity = totalLiquidity[_token];
@@ -98,7 +110,10 @@ contract Perpetuals is Ownable, IPerpetuals {
         require(_liquidityAmount <= liquidityAvailable, "Liquidity not available");
 
         // update the liquidity provided by the user for the given token
-        liquidityPerUser[msg.sender][_token] -= _liquidityAmount;
+        liquidityPerUser[msg.sender][_token].amount -= _liquidityAmount;
+
+        // update the timestamp that the user withdrew his liquidity
+        liquidityPerUser[msg.sender][_token].lastStakedTimestamp = block.timestamp;
 
         // update total liquidity of the given token
         totalLiquidity[_token].total -= _liquidityAmount;
@@ -111,24 +126,22 @@ contract Perpetuals is Ownable, IPerpetuals {
 
     function claimFees(address _token) external returns (uint256) {
         require(allowedTokens.contains(_token), "Token not allowed");
-        require(liquidityPerUser[msg.sender][_token] != 0, "No liquidity deposited");
-
-        // get the amount of liquidity the user deposited of a token
-        uint256 liquidityDeposited = liquidityPerUser[msg.sender][_token];
-
-        // get the total liquidity of the token
-        uint256 totalTokenLiquidity = totalLiquidity[_token].total;
+        require(liquidityPerUser[msg.sender][_token].amount != 0, "No liquidity deposited");
 
         // calculate the fees
-        uint256 fee = (liquidityDeposited * fees[_token]) / totalTokenLiquidity;
+        uint256 rewardFee = liquidityPerUser[msg.sender][_token].reward + _calculateStakingRewards(msg.sender, _token);
+        require(rewardFee != 0, "No rewards to claim");
+
+        liquidityPerUser[msg.sender][_token].reward = 0;
+        liquidityPerUser[msg.sender][_token].lastStakedTimestamp = block.timestamp;
 
         // emit event of fees being claimed
-        emit FeesClaimed(msg.sender, fee);
+        emit FeesClaimed(msg.sender, rewardFee);
 
         // pay the fees to the liquidity provider.
-        IERC20(_token).safeTransfer(msg.sender, fee);
+        IERC20(_token).safeTransfer(msg.sender, rewardFee);
 
-        return fee;
+        return rewardFee;
     }
 
     function openPosition(address _token, uint256 _size, uint256 _collateralAmount, PositionType _posType)
@@ -149,7 +162,7 @@ contract Perpetuals is Ownable, IPerpetuals {
         uint256 tokenPrice = _getTokenPrice(_token);
         Position memory newPosition =
             Position(_token, block.timestamp, _size, _collateralAmount, tokenPrice, _posType, false);
-        bytes32 id = keccak256(abi.encode(msg.sender, newPosition, nonce++));
+        bytes32 id = keccak256(abi.encode(msg.sender, newPosition, block.chainid, nonce++));
         positions[msg.sender][id] = newPosition;
 
         // update the open interest of the token
@@ -158,7 +171,7 @@ contract Perpetuals is Ownable, IPerpetuals {
         // check if the open interest isn't bigger than the max ratio that can be used from the pool
         require(liquidity.openInterest < (liquidity.total * maxLiquidityThreshold) / 10_000, "Size too big"); // se o threshold for 1000 bps (10%) então tudo é 10_000(100%)
 
-        emit PositionOpened(msg.sender, id);
+        emit PositionOpened(msg.sender, id, block.chainid);
 
         // transfer the collateral from the user to the protocol
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _collateralAmount);
@@ -209,7 +222,7 @@ contract Perpetuals is Ownable, IPerpetuals {
         emit CollateralIncreased(msg.sender, _positionId, _collateralToDeposit);
 
         // transfer the collateral from the user to the protocol
-        IERC20(_token).safeTransferFrom(msg.sender, address(this), _collateralToDeposit);
+        IERC20(_token).safeTransferFrom(msg.sender, address(this), newCollateral);
     }
 
     function decreaseCollateral(address _token, bytes32 _positionId, uint256 _collateralToWithdraw) external {
@@ -226,7 +239,7 @@ contract Perpetuals is Ownable, IPerpetuals {
 
         emit CollateralDecreased(msg.sender, _positionId, _collateralToWithdraw);
 
-        IERC20(_token).safeTransfer(msg.sender, _collateralToWithdraw);
+        IERC20(_token).safeTransfer(msg.sender, positions[msg.sender][_positionId].collateral);
     }
 
     function liquidate(address _trader, bytes32 _positionId) external {
@@ -268,7 +281,7 @@ contract Perpetuals is Ownable, IPerpetuals {
         require(leverage <= maxLeveragePerPosition && leverage != 0, "Invalid leverage");
         positions[msg.sender][_positionId].size = newSize;
 
-        emit SizeIncreased(msg.sender, _positionId, _sizeAmountToIncrease);
+        emit SizeIncreased(msg.sender, _positionId, newSize);
     }
 
     function decreaseSize(address _token, bytes32 _positionId, uint256 _sizeAmountToDecrease) external {
@@ -297,7 +310,7 @@ contract Perpetuals is Ownable, IPerpetuals {
             fees[_token] += realizedPnl.toUint256();
         }
 
-        emit SizeDecreased(msg.sender, _positionId, _sizeAmountToDecrease, realizedPnl);
+        emit SizeDecreased(msg.sender, _positionId, positions[msg.sender][_positionId].size, realizedPnl);
     }
 
     function _calculatePnl(address _user, bytes32 _positionId) internal view returns (int256) {
@@ -312,7 +325,7 @@ contract Perpetuals is Ownable, IPerpetuals {
 
         uint256 pnlInDollars = delta * position.size;
         uint256 pnlInToken = pnlInDollars / _getTokenPrice(position.token);
-        
+
         return pnlInToken.toInt256();
     }
 
@@ -330,11 +343,17 @@ contract Perpetuals is Ownable, IPerpetuals {
         return tokenPrice;
     }
 
+    function _calculateStakingRewards(address _user, address _token) internal view returns (uint256) {
+        StakedLiquidity storage liquidityStakedByUser = liquidityPerUser[_user][_token];
+        uint256 stakingDuration = block.timestamp - liquidityStakedByUser.lastStakedTimestamp;
+        return (liquidityStakedByUser.amount * feeDistributionRate * stakingDuration) / 10_000;
+    }
+
     function isTokenValid(address _token) external view returns (bool) {
         return allowedTokens.contains(_token);
     }
 
-    function getUserTokenLiquidity(address _user, address _token) external view returns (uint256) {
+    function getUserTokenLiquidity(address _user, address _token) external view returns (StakedLiquidity memory) {
         return liquidityPerUser[_user][_token];
     }
 

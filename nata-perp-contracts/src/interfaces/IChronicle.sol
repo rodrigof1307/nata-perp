@@ -2,5 +2,5 @@
 pragma solidity ^0.8.20;
 
 interface IChronicle {
-    function read() external view returns (uint value);
+    function read() external view returns (uint256 value);
 }
