@@ -8,7 +8,13 @@ import {
   useInitWeb3InboxClient,
   useMessages,
 } from "@web3inbox/widget-react";
-import { useSignMessage, useAccount, useChainId } from "wagmi";
+import {
+  useSignMessage,
+  useAccount,
+  useChainId,
+  erc20ABI,
+  useContractWrite,
+} from "wagmi";
 import { useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import MainTokenInfo from "@/components/MainTokenInfo";
@@ -19,6 +25,9 @@ import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { usePerpContractWrite } from "@/hooks/usePerpContractWrite";
+import { cryptosInfo } from "@/lib/cryptosInfo";
+import { createPublicClient, http } from "viem";
+import { gnosis, polygonZkEvmTestnet } from "viem/chains";
 
 interface TradingProps {}
 
@@ -32,21 +41,58 @@ const Trading: FC<TradingProps> = ({}) => {
   const [position, setPosition] = useState(Position.Long);
   const chainID = useChainId();
   const [tokenAddress, setTokenAddress] = useState("");
+  const [publicClient, setPublicClient] = useState<any>();
+  const [perpAddress, setPerpAddress] = useState("");
 
   useEffect(() => {
+    if (cryptosInfo === undefined) {
+      return;
+    }
+
     switch (chainID) {
       case 1442:
         // @ts-ignore
         setTokenAddress(cryptosInfo[selectedCryptoID].wrappedTokenZKEvmAddress);
+        setPerpAddress(process.env.NEXT_PUBLIC_PERP_ADDRESS_ZK_EVM!);
+        break;
       case 10200:
-        // @ts-ignore
-        setTokenAddress(cryptosInfo[selectedCryptoID].wrappedTokenZKEvmAddress);
+        setTokenAddress(
+          // @ts-ignore
+          cryptosInfo[selectedCryptoID].wrappedTokenGnosisAddress
+        );
+        setPerpAddress(process.env.NEXT_PUBLIC_PERP_ADDRESS_GNOSIS!);
+        break;
     }
   }, [chainID, selectedCryptoID]);
+
+  useEffect(() => {
+    switch (chainID) {
+      case 1442:
+        const client1 = createPublicClient({
+          chain: polygonZkEvmTestnet,
+          transport: http(),
+        });
+        setPublicClient(client1);
+        break;
+      case 10200:
+        const client2 = createPublicClient({
+          chain: gnosis,
+          transport: http(),
+        });
+        setPublicClient(client2);
+        break;
+    }
+  }, [chainID]);
 
   const { write: writeOpenPosition } = usePerpContractWrite({
     functionName: "openPosition",
     selectedCryptoID,
+  });
+
+  const { writeAsync: writeRequestApproval } = useContractWrite({
+    address: tokenAddress as `0x${string}`,
+    abi: erc20ABI,
+    functionName: "approve",
   });
 
   const openPosition = async ({
@@ -56,12 +102,21 @@ const Trading: FC<TradingProps> = ({}) => {
     posType,
   }: {
     token: string;
-    size: Number;
-    collateralAmount: Number;
+    size: number;
+    collateralAmount: number;
     posType: Position;
   }) => {
+    const response1 = await writeRequestApproval({
+      args: [perpAddress as `0x${string}`, BigInt(collateralAmount)],
+    });
+
+    const transaction = await publicClient.waitForTransactionReceipt({
+      hash: response1.hash,
+    });
+
+    console.log(token, size, collateralAmount, posType);
     const response = await writeOpenPosition({
-      args: [token, size, collateralAmount, posType.valueOf()],
+      args: [token, BigInt(size), BigInt(collateralAmount), posType],
     });
     console.log(response);
   };
@@ -70,6 +125,7 @@ const Trading: FC<TradingProps> = ({}) => {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm();
 
   return (
@@ -106,15 +162,17 @@ const Trading: FC<TradingProps> = ({}) => {
             </button>
           </div>
           <form
-            onSubmit={handleSubmit((data) => {
-              let collateralAmount = data.size * data.leverage;
+            onSubmit={handleSubmit(async (data) => {
+              let size = Number(data.collateral) * Number(data.leverage);
 
-              openPosition({
+              await openPosition({
                 token: tokenAddress,
-                size: data.size,
-                collateralAmount: collateralAmount,
+                size: size,
+                collateralAmount: Number(data.collateral),
                 posType: position,
               });
+
+              reset();
             })}
             className="flex w-full flex-1 flex-col items-center justify-between"
           >

@@ -16,8 +16,10 @@ export const usePerpContractWrite = ({
     switch (chainID) {
       case 1442:
         setPerpAddress(process.env.NEXT_PUBLIC_PERP_ADDRESS_ZK_EVM!);
+        break;
       case 10200:
         setPerpAddress(process.env.NEXT_PUBLIC_PERP_ADDRESS_GNOSIS!);
+        break;
     }
   }, [chainID, selectedCryptoID]);
 
