@@ -18,17 +18,53 @@ import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { usePerpContractWrite } from "@/hooks/usePerpContractWrite";
 
 interface TradingProps {}
 
 enum Position {
-  Long,
-  Short,
+  Long = 0,
+  Short = 1,
 }
 
 const Trading: FC<TradingProps> = ({}) => {
   const [selectedCryptoID, setSelectedCryptoID] = useState("ethereum");
   const [position, setPosition] = useState(Position.Long);
+  const chainID = useChainId();
+  const [tokenAddress, setTokenAddress] = useState("");
+
+  useEffect(() => {
+    switch (chainID) {
+      case 1442:
+        // @ts-ignore
+        setTokenAddress(cryptosInfo[selectedCryptoID].wrappedTokenZKEvmAddress);
+      case 10200:
+        // @ts-ignore
+        setTokenAddress(cryptosInfo[selectedCryptoID].wrappedTokenZKEvmAddress);
+    }
+  }, [chainID, selectedCryptoID]);
+
+  const { write: writeOpenPosition } = usePerpContractWrite({
+    functionName: "openPosition",
+    selectedCryptoID,
+  });
+
+  const openPosition = async ({
+    token,
+    size,
+    collateralAmount,
+    posType,
+  }: {
+    token: string;
+    size: Number;
+    collateralAmount: Number;
+    posType: Position;
+  }) => {
+    const response = await writeOpenPosition({
+      args: [token, size, collateralAmount, posType.valueOf()],
+    });
+    console.log(response);
+  };
 
   const {
     register,
@@ -71,7 +107,14 @@ const Trading: FC<TradingProps> = ({}) => {
           </div>
           <form
             onSubmit={handleSubmit((data) => {
-              console.log(data);
+              let collateralAmount = data.size * data.leverage;
+
+              openPosition({
+                token: tokenAddress,
+                size: data.size,
+                collateralAmount: collateralAmount,
+                posType: position,
+              });
             })}
             className="flex w-full flex-1 flex-col items-center justify-between"
           >
