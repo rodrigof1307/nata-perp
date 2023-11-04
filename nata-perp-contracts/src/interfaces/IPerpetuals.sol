@@ -33,7 +33,7 @@ interface IPerpetuals {
     event FeesClaimed(address indexed user, uint256 feeWithdrawn);
 
     // governance functions
-    function setAllowedTokens(address[] calldata _allowedTokens) external;
+    function setAllowedTokens(address[] calldata _allowedTokens, address[] calldata _oracles) external;
     function setMaxLiquidityThreshold(uint256 _maxLiquidityThreshold) external;
     function setMaxLeveragePerPosition(uint256 _maxLeveragePerPosition) external;
     function setLiquidatorFee(uint256 _liquidatorFee) external;
