@@ -59,7 +59,7 @@ contract Perpetuals is Ownable, IPerpetuals {
 
         // update the liquidity provided by the user for the given token
         liquidityPerUser[msg.sender][_token] += _liquidityAmount;
-        
+
         // update total liquidity of the given token
         totalLiquidity[_token].total += _liquidityAmount;
 
@@ -73,7 +73,7 @@ contract Perpetuals is Ownable, IPerpetuals {
         require(_liquidityAmount != 0, "Can't deposited zero liquidity");
         require(allowedTokens.contains(_token), "Token not allowed");
         require(_liquidityAmount <= liquidityPerUser[msg.sender][_token], "Not enough liquidity");
-        
+
         // check if there's enough liquidity for the user to withdraw
         Liquidity memory liquidity = totalLiquidity[_token];
         uint256 liquidityAvailable = liquidity.total - liquidity.openInterest;
@@ -96,7 +96,7 @@ contract Perpetuals is Ownable, IPerpetuals {
         returns (bytes32)
     {
         require(allowedTokens.contains(_token), "Token not allowed");
-        
+
         // check if the position is being created with a valid leverage
         Liquidity memory liquidity = totalLiquidity[_token];
         uint256 leverage = _calculateLeverage(_size, _collateralAmount);
@@ -111,7 +111,7 @@ contract Perpetuals is Ownable, IPerpetuals {
             Position(_token, block.timestamp, _size, _collateralAmount, tokenPrice, _posType, false);
         bytes32 id = keccak256(abi.encode(msg.sender, newPosition, nonce++));
         positions[msg.sender][id] = newPosition;
-        
+
         // update the open interest of the token
         totalLiquidity[_token].openInterest += _size;
 
@@ -129,7 +129,7 @@ contract Perpetuals is Ownable, IPerpetuals {
     function increaseCollateral(address _token, bytes32 _positionId, uint256 _collateralToDeposit) external {
         require(_collateralToDeposit != 0, "Collateral can't be zero");
         require(allowedTokens.contains(_token), "Token not allowed");
-        
+
         // check if the position exists and is opened
         Position memory position = positions[msg.sender][_positionId];
         require(position.token != address(0), "Invalid position");
@@ -150,6 +150,23 @@ contract Perpetuals is Ownable, IPerpetuals {
 
         // transfer the collateral from the user to the protocol
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _collateralToDeposit);
+    }
+
+    function decreaseCollateral(address _token, bytes32 _positionId, uint256 _collateralToWithdraw) external {
+        require(_collateralToWithdraw > 0, "Collateral can't be zero");
+        require(allowedTokens.contains(_token), "Token not allowed");
+
+        Position memory position = positions[msg.sender][_positionId];
+        require(position.token != address(0), "Invalid position");
+        require(!position.closed, "Position already closed");
+        uint256 leverage = position.size / (position.collateral - _collateralToWithdraw);
+        require(leverage <= maxLeveragePerPosition, "Leverage too high");
+
+        positions[msg.sender][_positionId].collateral -= _collateralToWithdraw;
+
+        emit CollateralDecreased(msg.sender, _positionId, positions[msg.sender][_positionId].collateral);
+
+        IERC20(_token).safeTransfer(msg.sender, _collateralToWithdraw);
     }
 
     function increaseSize(address _token, bytes32 _positionId, uint256 _sizeAmountToIncrease) external {
