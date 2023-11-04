@@ -244,6 +244,8 @@ contract Perpetuals is Ownable, IPerpetuals {
         fees[position.token] += remainingFees;
 
         IERC20(position.token).transfer(msg.sender, liquidatorFeeAmount);
+
+        emit UserLiquidated(_trader, _positionId, msg.sender);
     }
 
     function increaseSize(address _token, bytes32 _positionId, uint256 _sizeAmountToIncrease) external {

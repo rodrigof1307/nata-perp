@@ -32,6 +32,7 @@ interface IPerpetuals {
     event SizeIncreased(address indexed user, bytes32 indexed id, uint256 sizeIncreased);
     event SizeDecreased(address indexed user, bytes32 indexed id, uint256 sizeDecreased, int256 realizedPnl);
     event FeesClaimed(address indexed user, uint256 feeWithdrawn);
+    event UserLiquidated(address indexed user, bytes32 indexed id, address liquidator);
 
     // governance functions
     function setAllowedTokens(address[] calldata _allowedTokens, address[] calldata _oracles) external;
