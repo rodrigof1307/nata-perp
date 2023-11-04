@@ -3,7 +3,7 @@ import { Sora } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
-import WagmiConfig from "@/components/WagmiConfig";
+import Providers from "@/components/Providers";
 
 const sora = Sora({ subsets: ["latin"] });
 
@@ -11,13 +11,14 @@ export const metadata: Metadata = {
   title: "Nata Perp",
   description: "ETH Lisbon Hackathon Project",
 };
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <WagmiConfig>
+    <Providers>
       <html lang="en" className="min-h-screen">
         <body
           className={cn(
@@ -29,6 +30,6 @@ export default function RootLayout({
           {children}
         </body>
       </html>
-    </WagmiConfig>
+    </Providers>
   );
 }

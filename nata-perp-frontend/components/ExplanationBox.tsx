@@ -23,11 +23,9 @@ const ExplanationBox: FC<ExplanationBoxProps> = ({
         <p className="text-lg font-light text-white">{description}</p>
       </div>
       <Link href={href}>
-        <button className="w-4/5 rounded-xl">
-          <Box className="py-2 text-lg font-semibold text-white">
-            {buttonTitle}
-          </Box>
-        </button>
+        <Button size={"lg"} className="w-4/5">
+          {buttonTitle}
+        </Button>
       </Link>
     </Box>
   );

@@ -1,6 +1,8 @@
 "use client";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createWeb3Modal, defaultWagmiConfig } from "@web3modal/wagmi/react";
+import { useState } from "react";
 
 import { WagmiConfig as WagmiConfigOriginal, configureChains } from "wagmi";
 import { mainnet, sepolia, zkSyncTestnet, gnosisChiado } from "wagmi/chains";
@@ -35,12 +37,12 @@ createWeb3Modal({
   },
 });
 
-export default function WagmiConfig({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function Providers({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(new QueryClient());
+
   return (
-    <WagmiConfigOriginal config={wagmiConfig}>{children}</WagmiConfigOriginal>
+    <QueryClientProvider client={queryClient}>
+      <WagmiConfigOriginal config={wagmiConfig}>{children}</WagmiConfigOriginal>
+    </QueryClientProvider>
   );
 }
