@@ -139,8 +139,12 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
   };
 
   const generalRefetch = useCallback(async () => {
-    await Promise.all([refetchTokenLiquidity(), refetchUserTokenLiquidity()]);
-  }, [refetchTokenLiquidity, refetchUserTokenLiquidity]);
+    await Promise.all([
+      refetchTokenLiquidity(),
+      refetchUserTokenLiquidity(),
+      refetchFees(),
+    ]);
+  }, [refetchTokenLiquidity, refetchUserTokenLiquidity, refetchFees]);
 
   useEffect(() => {
     if (cryptosInfo === undefined) {
@@ -189,7 +193,7 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
 
             <div className="mt-20 flex w-full flex-col items-center justify-between gap-8">
               <h2 className="w-full text-left text-xl font-light text-orange-600">
-                {`Your Liquidity Contribution: ${userTokenLiquidity}`}
+                {`Your Liquidity Contribution: ${userTokenLiquidity ?? 0}`}
               </h2>
               <h2 className="w-full text-left text-xl font-light text-orange-600">
                 {`Your Fees: ${userFees.toFixed(2)}`}
