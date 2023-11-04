@@ -82,7 +82,7 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
     });
 
   useEffect(() => {
-    console.log("tokenAddress ", tokenAddress);
+    console.log("tokenAddress should work ", tokenAddress);
   }, [tokenAddress]);
 
   useEffect(() => {
