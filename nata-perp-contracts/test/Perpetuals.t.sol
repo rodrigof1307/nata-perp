@@ -55,7 +55,7 @@ contract PerpetualsTest is Test {
 
         vm.expectRevert("Liquidity threshold too high");
         perps.setMaxLiquidityThreshold(10000);
-    
+
         vm.startPrank(trader);
         vm.expectRevert(); // not the owner
         perps.setMaxLiquidityThreshold(2000);
@@ -93,7 +93,7 @@ contract PerpetualsTest is Test {
         testDepositLiquidity();
 
         vm.startPrank(liquidityProvider);
-    
+
         perps.withdrawLiquidity(address(weth), 1 ether);
         assertEq(perps.getUserTokenLiquidity(liquidityProvider, address(weth)), 0 ether);
         assertEq(perps.getTokenLiquidity(address(weth)).total, 0 ether);
@@ -109,5 +109,4 @@ contract PerpetualsTest is Test {
     function testIncreaseCollateral() public {} // not ready to test
 
     function testIncreaseSize() public {}
-
 }
