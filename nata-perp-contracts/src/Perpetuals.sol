@@ -103,6 +103,28 @@ contract Perpetuals is Ownable, IPerpetuals {
         IERC20(_token).safeTransfer(msg.sender, _liquidityAmount);
     }
 
+    function claimFees(address _token) external returns (uint256) {
+        require(allowedTokens.contains(_token), "Token not allowed");
+        require(liquidityPerUser[msg.sender][_token] != 0, "No liquidity deposited");
+
+        // get the amount of liquidity the user deposited of a token
+        uint256 liquidityDeposited = liquidityPerUser[msg.sender][_token];
+
+        // get the total liquidity of the token
+        uint256 totalTokenLiquidity = totalLiquidity[_token].total;
+
+        // calculate the fees
+        uint256 fee = (liquidityDeposited * fees[_token]) / totalTokenLiquidity;
+
+        // emit event of fees being claimed
+        emit FeesClaimed(msg.sender, fee);
+
+        // pay the fees to the liquidity provider.
+        IERC20(_token).safeTransfer(msg.sender, fee);
+
+        return fee;
+    }
+
     function openPosition(address _token, uint256 _size, uint256 _collateralAmount, PositionType _posType)
         external
         returns (bytes32)
