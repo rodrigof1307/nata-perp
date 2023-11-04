@@ -164,7 +164,7 @@ contract Perpetuals is Ownable, IPerpetuals {
 
         positions[msg.sender][_positionId].collateral -= _collateralToWithdraw;
 
-        emit CollateralDecreased(msg.sender, _positionId, positions[msg.sender][_positionId].collateral);
+        emit CollateralDecreased(msg.sender, _positionId, _collateralToWithdraw);
 
         IERC20(_token).safeTransfer(msg.sender, _collateralToWithdraw);
     }
