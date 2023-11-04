@@ -36,20 +36,15 @@ contract PerpetualsTest is Test {
 
     function testSetAllowedTokens() public {
         vm.startPrank(owner);
-
         address[] memory tokens = new address[](1);
         tokens[0] = address(wbtc);
-
         perps.setAllowedTokens(tokens);
         assertEq(perps.isTokenValid(address(wbtc)), true);
-
         vm.stopPrank();
 
         vm.startPrank(trader);
-        
         vm.expectRevert();
         perps.setAllowedTokens(tokens);
-
         vm.stopPrank();
     }
 
@@ -88,6 +83,9 @@ contract PerpetualsTest is Test {
         assertEq(perps.getUserTokenLiquidity(liquidityProvider, address(weth)), 1 ether);
         assertEq(perps.getTokenLiquidity(address(weth)).total, 1 ether);
 
+        assertEq(weth.balanceOf(liquidityProvider), 9 ether);
+        assertEq(weth.balanceOf(address(perps)), 1 ether);
+
         vm.stopPrank();
     }
 
@@ -99,6 +97,9 @@ contract PerpetualsTest is Test {
         perps.withdrawLiquidity(address(weth), 1 ether);
         assertEq(perps.getUserTokenLiquidity(liquidityProvider, address(weth)), 0 ether);
         assertEq(perps.getTokenLiquidity(address(weth)).total, 0 ether);
+
+        assertEq(weth.balanceOf(liquidityProvider), 10 ether);
+        assertEq(weth.balanceOf(address(perps)), 0 ether);
 
         vm.stopPrank();
     }
