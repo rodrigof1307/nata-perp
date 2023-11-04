@@ -337,4 +337,8 @@ contract Perpetuals is Ownable, IPerpetuals {
     function getTokenLiquidity(address _token) external view returns (Liquidity memory) {
         return totalLiquidity[_token];
     }
+
+    function getUserPosition(address _user, bytes32 _id) external view returns (Position memory) {
+        return positions[_user][_id];
+    }
 }
