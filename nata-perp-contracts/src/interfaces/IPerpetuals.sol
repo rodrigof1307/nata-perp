@@ -21,6 +21,7 @@ interface IPerpetuals {
     event LiquidityWithdrawed(address indexed user, address indexed token, uint256 amount);
     event PositionOpened(address indexed user, bytes32 indexed id);
     event CollateralIncreased(address indexed user, bytes32 indexed id, uint256 collateralIncreased);
+    event CollateralDecreased(address indexed user, bytes32 indexed id, uint256 collateralDecreased);
     event SizeIncreased(address indexed user, bytes32 indexed id, uint256 sizeIncreased);
     event SizeDecreased(address indexed user, bytes32 indexed id, uint256 sizeDecreased, int256 realizedPnl);
 
@@ -44,7 +45,7 @@ interface IPerpetuals {
         external
         returns (bytes32);
     // function closePosition(address _token, bytes32 _positionId) external;
-    // function decreaseCollateral(address _token, bytes32 _positionId, uint256 _collateralToWithdraw) external;
+    function decreaseCollateral(address _token, bytes32 _positionId, uint256 _collateralToWithdraw) external;
     function increaseCollateral(address _token, bytes32 _positionId, uint256 _collateralToDeposit) external;
     function decreaseSize(address _token, bytes32 _positionId, uint256 _sizeAmountToIncrease) external;
     function increaseSize(address _token, bytes32 _positionId, uint256 _sizeAmountToDecrease) external;
