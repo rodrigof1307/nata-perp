@@ -32,14 +32,15 @@ const OpenPosition: FC<OpenPositionProps> = ({
   const isLiquidable = currentLeverage > 20;
 
   return (
-    <Box className="flex w-full flex-row items-center justify-between rounded-xl p-6 font-light text-orange-600">
-      <h2>{type === Position.Long ? "Long" : "Short"}</h2>
-      <h2>{collateral}</h2>
-      <h2>{size}</h2>
-      <h2>{entryPrice + " $"}</h2>
-      <h2>{currentPrice + " $"}</h2>
-      <h2>{profitAndLoss.toFixed(2) + " $"}</h2>
-      <h2>{currentLeverage.toFixed(2)}</h2>
+    <Box className="flex w-full flex-row items-center justify-start rounded-xl p-6 text-center font-light text-orange-600">
+      <h2 className="w-[9%]">{type === Position.Long ? "Long" : "Short"}</h2>
+      <h2 className="w-[13%]">{collateral}</h2>
+      <h2 className="w-[13%]">{size}</h2>
+      <h2 className="w-[13%]">{entryPrice + " $"}</h2>
+      <h2 className="w-[13%]">{currentPrice + " $"}</h2>
+      <h2 className="w-[13%]">{profitAndLoss.toFixed(2) + " $"}</h2>
+      <h2 className="w-[11%]">{currentLeverage.toFixed(2)}</h2>
+      <div className="flex-1" />
       <Button variant={"full"} disabled={!isLiquidable}>
         Close Position
       </Button>

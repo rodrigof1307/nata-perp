@@ -37,27 +37,38 @@ const Liquidation: FC<LiquidationProps> = ({}) => {
         selectedCryptoID={selectedCryptoID}
         setSelectedCryptoID={setSelectedCryptoID}
       />
-      <OpenPosition
-        type={Position.Long}
-        collateral={0.1}
-        size={10}
-        entryPrice={1800}
-        currentPrice={Number(data?.price ?? 0)}
-      />
-      <OpenPosition
-        type={Position.Long}
-        collateral={0.5}
-        size={10}
-        entryPrice={1800}
-        currentPrice={Number(data?.price ?? 0)}
-      />
-      <OpenPosition
-        type={Position.Long}
-        collateral={0.5}
-        size={2}
-        entryPrice={1500}
-        currentPrice={Number(data?.price ?? 0)}
-      />
+      <div className="mt-6 flex w-full flex-1 flex-col items-center justify-start gap-4">
+        <div className="flex w-full flex-row justify-start px-6 text-center text-white">
+          <h2 className="w-[9%]">Type</h2>
+          <h2 className="w-[13%]">Collateral</h2>
+          <h2 className="w-[13%]">Size</h2>
+          <h2 className="w-[13%]">Entry Price</h2>
+          <h2 className="w-[13%]">Current Price</h2>
+          <h2 className="w-[13%]">Profit and Loss</h2>
+          <h2 className="w-[11%]">Current Leverage</h2>
+        </div>
+        <OpenPosition
+          type={Position.Long}
+          collateral={0.1}
+          size={10}
+          entryPrice={1800}
+          currentPrice={Number(data?.price ?? 0)}
+        />
+        <OpenPosition
+          type={Position.Long}
+          collateral={0.5}
+          size={10}
+          entryPrice={1800}
+          currentPrice={Number(data?.price ?? 0)}
+        />
+        <OpenPosition
+          type={Position.Long}
+          collateral={0.5}
+          size={2}
+          entryPrice={1500}
+          currentPrice={Number(data?.price ?? 0)}
+        />
+      </div>
     </div>
   );
 };
