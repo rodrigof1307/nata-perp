@@ -37,7 +37,7 @@ enum Position {
 }
 
 const Trading: FC<TradingProps> = ({}) => {
-  const [selectedCryptoID, setSelectedCryptoID] = useState("ethereum");
+  const [selectedCryptoID, setSelectedCryptoID] = useState("bitcoin");
   const [position, setPosition] = useState(Position.Long);
   const chainID = useChainId();
   const [tokenAddress, setTokenAddress] = useState("");

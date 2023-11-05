@@ -6,22 +6,33 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { FC, useEffect, useState } from "react";
 
-enum Position {
-  Long = 0,
-  Short = 1,
-}
+type Position = {
+  id: number;
+  positionId: string;
+  user: string;
+  chainId: null | string;
+  closed: boolean;
+  collateral: number;
+  created_at: string;
+  liquidated: boolean;
+  posType: "LONG" | "SHORT"; // Assuming these are the possible types
+  price: number;
+  size: number;
+  token: string;
+  updated_at: string;
+};
 
 interface LiquidationProps {}
 
 const Liquidation: FC<LiquidationProps> = ({}) => {
-  const [selectedCryptoID, setSelectedCryptoID] = useState("ethereum");
+  const [selectedCryptoID, setSelectedCryptoID] = useState("bitcoin");
 
   const fetchCryptoInfo = async ({ queryKey }: any) => {
     const { data } = await axios.get(`/api/getInfo/${queryKey[1]}`);
     return data;
   };
 
-  const { data } = useQuery({
+  const { data: dataCryptoInfo } = useQuery({
     queryKey: ["cryptoInfo", selectedCryptoID],
     queryFn: fetchCryptoInfo,
     retry: 1,
@@ -33,8 +44,14 @@ const Liquidation: FC<LiquidationProps> = ({}) => {
 
   const fetchPositions = async () => {
     const { data } = await axios.get("http://localhost:3001/positions");
-    console.log(data);
-    return data;
+    return data.map((position: Position) => ({
+      id: position.positionId,
+      type: position.posType, // Assuming you have this kind of mapping
+      collateral: position.collateral,
+      size: position.size,
+      entryPrice: position.price, // Assuming 'data?.price' is global or fetched from elsewhere
+      token: position.token,
+    }));
   };
 
   const { data: dataPositions } = useQuery({
@@ -46,10 +63,6 @@ const Liquidation: FC<LiquidationProps> = ({}) => {
     refetchOnMount: false,
     refetchOnReconnect: false,
   });
-
-  useEffect(() => {
-    console.log(dataPositions);
-  }, [dataPositions]);
 
   return (
     <div className="flex flex-1 flex-col items-center justify-between p-12">
@@ -67,27 +80,20 @@ const Liquidation: FC<LiquidationProps> = ({}) => {
           <h2 className="w-[13%]">Profit and Loss</h2>
           <h2 className="w-[11%]">Current Leverage</h2>
         </div>
-        <OpenPosition
-          type={Position.Long}
-          collateral={0.1}
-          size={10}
-          entryPrice={1800}
-          currentPrice={Number(data?.price ?? 0)}
-        />
-        <OpenPosition
-          type={Position.Long}
-          collateral={0.5}
-          size={10}
-          entryPrice={1800}
-          currentPrice={Number(data?.price ?? 0)}
-        />
-        <OpenPosition
-          type={Position.Long}
-          collateral={0.5}
-          size={2}
-          entryPrice={1500}
-          currentPrice={Number(data?.price ?? 0)}
-        />
+        {dataCryptoInfo &&
+          dataPositions?.map((position: any) => (
+            <OpenPosition
+              key={position.id}
+              id={position.id}
+              type={position.type}
+              collateral={position.collateral}
+              size={position.size}
+              entryPrice={position.entryPrice}
+              currentPrice={dataCryptoInfo.price}
+              selectedCryptoID={selectedCryptoID}
+              tokenAddress={position.token}
+            />
+          ))}
       </div>
     </div>
   );

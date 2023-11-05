@@ -16,7 +16,7 @@ interface SelectTokenProps {
 
 export function SelectToken({ onValueChange }: SelectTokenProps) {
   return (
-    <Select defaultValue={"ethereum"} onValueChange={onValueChange}>
+    <Select defaultValue={"bitcoin"} onValueChange={onValueChange}>
       <SelectTrigger className="w-40">
         <SelectValue />
       </SelectTrigger>

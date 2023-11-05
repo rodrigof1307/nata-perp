@@ -21,7 +21,7 @@ import { set } from "react-hook-form";
 interface LiquidityPoolProps {}
 
 const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
-  const [selectedCryptoID, setSelectedCryptoID] = useState("ethereum");
+  const [selectedCryptoID, setSelectedCryptoID] = useState("bitcoin");
   const chainID = useChainId();
   const [tokenAddress, setTokenAddress] = useState("");
   const [additionAmount, setAdditionAmount] = useState(0);
