@@ -34,10 +34,11 @@ const MainTokenInfo: FC<MainTokenInfoProps> = ({
       {data && (
         <>
           <h1 className="font-semibold text-orange-600">
-            {"Price: " + data.price + " $"}
+            <span className="mr-1 font-light text-white">Price:</span>
+            {" " + data.price + " $"}
           </h1>
           <h1 className="font-semibold text-orange-600">
-            {"24h Change: "}
+            <span className="mr-1 font-light text-white">24h Change:</span>
             {data.dailyChange > 0 ? (
               <span className=" text-green-600">{data.dailyChange + "%"}</span>
             ) : (
@@ -45,10 +46,12 @@ const MainTokenInfo: FC<MainTokenInfoProps> = ({
             )}
           </h1>
           <h1 className="font-semibold text-orange-600">
-            {"24h High: " + data.priceHigh + " $"}
+            <span className="mr-1 font-light text-white">24h High:</span>
+            {" " + data.priceHigh + " $"}
           </h1>
           <h1 className="font-semibold text-orange-600">
-            {"24h Low: " + data.priceLow + " $"}
+            <span className="mr-1 font-light text-white">24h Low:</span>
+            {" " + data.priceLow + " $"}
           </h1>
         </>
       )}

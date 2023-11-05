@@ -199,9 +199,9 @@ const Trading: FC<TradingProps> = ({}) => {
         selectedCryptoID={selectedCryptoID}
         setSelectedCryptoID={setSelectedCryptoID}
       />
-      <div className="mt-4 flex w-full flex-row items-center justify-between">
+      <div className="mt-4 flex w-full flex-row items-start justify-between">
         <Chart selectedCryptoID={selectedCryptoID} />
-        <Box className="flex h-[550px] w-[350px] flex-col items-center justify-start p-4">
+        <Box className="flex h-[518px] w-[350px] flex-col items-center justify-start p-4">
           <div className="mb-4 flex w-full flex-row items-center justify-between gap-2 rounded-lg bg-zinc-700 p-1.5">
             <button
               className={cn(
