@@ -2,8 +2,14 @@ const http = require('http')
 const ethers = require("ethers")
 const axios = require("axios")
 const port = 8080
-const provider = ethers.getDefaultProvider("https://polygonzkevm-testnet.g.alchemy.com/v2/osucqkh--UPxbR9GsVaiGp1FJ98ITMjJ")
-const nataPerpContractAddress = "0x74CA2C75bC0A4e8B20A3904Be9f4d4d20e918378"
+
+// PROVIDER
+const providerPolygon = ethers.getDefaultProvider("https://polygonzkevm-testnet.g.alchemy.com/v2/osucqkh--UPxbR9GsVaiGp1FJ98ITMjJ")
+const providerGnosis = ethers.getDefaultProvider("https://rpc.ankr.com/gnosis")
+// ADDRESS
+const nataPerpContractAddressPolygon = "0x74CA2C75bC0A4e8B20A3904Be9f4d4d20e918378"
+const nataPerpContractAddressGnosis = "TODO"
+// ABI
 const nataPerpAbi = [
   "function positions(address, bytes32) view returns (address token, uint256 timestamp, uint256 size, uint256 collateral, uint256 price, uint8 posType, bool closed)",
   "event PositionOpened(address indexed user, bytes32 indexed id)",
@@ -13,38 +19,36 @@ const nataPerpAbi = [
   "event SizeIncreased(address indexed user, bytes32 indexed id, uint256 sizeIncreased)",
   "event SizeDecreased(address indexed user, bytes32 indexed id, uint256 sizeDecreased, int256 realizedPnl)"
 ]
-const nataPerpContract = new ethers.Contract(nataPerpContractAddress, nataPerpAbi, provider);
+// CONTRACT
+const nataPerpContractPolygon = new ethers.Contract(nataPerpContractAddressPolygon, nataPerpAbi, providerPolygon);
+const nataPerpContractGnosis = new ethers.Contract(nataPerpContractAddressGnosis, nataPerpAbi, providerGnosis);
 
-// Create a server object: 
+// SERVER
 http.createServer(() => {}).listen(port, (error) => {
   if (error) {
     console.log('Something went wrong', error); 
   }
   else { 
-    nataPerpContract.on("PositionOpened", handlePositionOpened)
-    nataPerpContract.on("PositionClosed", handlePositionClosed)
-    nataPerpContract.on("CollateralIncreased", handleCollateralIncreased)
-    nataPerpContract.on("CollateralDecreased", handleCollateralDecreased)
-    nataPerpContract.on("SizeIncreased", handleSizeIncreased)
-    nataPerpContract.on("SizeDecreased", handleSizeDecreased)
+    // Polygon
+    nataPerpContractPolygon.on("PositionOpened", handlePositionOpened)
+    nataPerpContractPolygon.on("PositionClosed", handlePositionClosed)
+    nataPerpContractPolygon.on("CollateralIncreased", handleCollateralIncreased)
+    nataPerpContractPolygon.on("CollateralDecreased", handleCollateralDecreased)
+    nataPerpContractPolygon.on("SizeIncreased", handleSizeIncreased)
+    nataPerpContractPolygon.on("SizeDecreased", handleSizeDecreased)
+    // Gnosis
+    nataPerpContractGnosis.on("PositionOpened", handlePositionOpened)
+    nataPerpContractGnosis.on("PositionClosed", handlePositionClosed)
+    nataPerpContractGnosis.on("CollateralIncreased", handleCollateralIncreased)
+    nataPerpContractGnosis.on("CollateralDecreased", handleCollateralDecreased)
+    nataPerpContractGnosis.on("SizeIncreased", handleSizeIncreased)
+    nataPerpContractGnosis.on("SizeDecreased", handleSizeDecreased)
   }
 })
 
+// HANDLERS
 const handlePositionOpened = async (user, id, event) => {
-  // handle event and update db
-
-  console.log("POSITION OPENED");
-  console.log(`user: ${user}`);
-  console.log(`id: ${id}`);
   let position = await nataPerpContract.positions(user, id)
-  console.log("POSITION:")
-  console.log(`token: ${position["token"]}`);
-  console.log(`timestamp: ${new Date(parseInt(position["timestamp"]) * 1000)}`);
-  console.log(`size: ${parseFloat(ethers.utils.formatEther(position["size"]))}`);
-  console.log(`collateral: ${parseFloat(ethers.utils.formatEther(position["collateral"]))}`);
-  console.log(`price: ${parseFloat(ethers.utils.formatUnits(position["price"], 18))}`);
-  console.log(`posType: ${position["posType"] == 0 ? "LONG" : "SHORT"}`);
-  console.log(`closed: ${position["closed"]}`);
 
   axios.post('http://localhost:3000/positions', {
     position: {
@@ -61,35 +65,40 @@ const handlePositionOpened = async (user, id, event) => {
     }
   })
   .then(function (response) {
-    console.log(response);
+    console.log("POSITION OPENED");
   })
   .catch(function (error) {
-    console.log(error);
+    console.log("ERROR: POSITION OPENED");
   });
 }
 
 const handlePositionClosed = (user, id, event) => {
-  // handle event and update db
-  console.log("POSITION CLOSED");
+  axios.put(`http://localhost:3000/positions/${id}`, {
+    position: {
+      closed: true
+    }
+  })
+  .then(function (response) {
+    console.log("POSITION CLOSED");
+  })
+  .catch(function (error) {
+    console.log("ERROR: POSITION CLOSED");
+  });
 }
 
 const handleCollateralIncreased = (user, id, collateralIncreased, event) => {
-  // handle event and update db
   console.log("COLLATERAL INCREASED");
 }
 
 const handleCollateralDecreased = (user, id, collateralDecreased, event) => {
-  // handle event and update db
   console.log("COLLATERAL DECREASED");
 }
 
 const handleSizeIncreased = (user, id, sizeIncreased, event) => {
-  // handle event and update db
   console.log("SIZE INCREASED");
 }
 
 const handleSizeDecreased = (user, id, sizeDecreased, realizedPnl, event) => {
-  // handle event and update db  
   console.log("SIZE DECREASED");
 }
 
@@ -103,7 +112,10 @@ const handleSizeDecreased = (user, id, sizeDecreased, realizedPnl, event) => {
     - price       (float)
     - posType     (string)
     - closed      (bool)
-    - id          (string)
+    - positionId  (string)
     - user        (string)
     - liquidated  (bool)
 */
+
+// ALL OPEN POSITIONS BY CHAIN ID
+// ALL OPEN POSITIONS BY CHAIN ID PER USER
