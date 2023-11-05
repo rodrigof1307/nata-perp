@@ -32,6 +32,12 @@ const Navbar: FC = ({}) => {
         <Link href={"/liquidation"} className={getLinkClasses("/liquidation")}>
           Liquidation
         </Link>
+        <Link
+          href={"/notifications"}
+          className={getLinkClasses("/notifications")}
+        >
+          Notifications
+        </Link>
       </div>
       <w3m-button />
     </div>

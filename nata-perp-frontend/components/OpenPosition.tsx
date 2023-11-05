@@ -4,6 +4,7 @@ import { FC } from "react";
 import Box from "./ui/Box";
 import { Button } from "./ui/button";
 import { usePerpContractWrite } from "@/hooks/usePerpContractWrite";
+import { useChainId } from "wagmi";
 
 interface OpenPositionProps {
   id: number;
@@ -14,6 +15,7 @@ interface OpenPositionProps {
   currentPrice: number;
   selectedCryptoID: string;
   tokenAddress: string;
+  user: string;
 }
 
 const OpenPosition: FC<OpenPositionProps> = ({
@@ -25,6 +27,7 @@ const OpenPosition: FC<OpenPositionProps> = ({
   currentPrice,
   selectedCryptoID,
   tokenAddress,
+  user,
 }) => {
   const { writeAsync: writeClosePosition } = usePerpContractWrite({
     functionName: "closePosition",
@@ -38,11 +41,38 @@ const OpenPosition: FC<OpenPositionProps> = ({
     (size * entryPrice) / (collateral * entryPrice - profitAndLoss);
   const isLiquidable = currentLeverage > 20;
 
+  const chainId = useChainId();
+
+  const sendNotification = async () => {
+    await fetch(
+      `https://notify.walletconnect.com/${
+        process.env.NEXT_PUBLIC_PROJECT_ID ?? ""
+      }/notify`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTIFY ?? ""}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          notification: {
+            type: "0de41dc4-845a-4f70-b420-809cc832d71e", // Notification type ID copied from Cloud
+            title: "Your position has been closed!",
+            body: "Position id: " + id,
+          },
+          accounts: [
+            `eip155:${chainId}:${user}`, // CAIP-10 account ID
+          ],
+        }),
+      }
+    );
+  };
+
   const handleClosePosition = async () => {
-    console.log("Closing position", id);
     await writeClosePosition({
       args: [tokenAddress, id],
     });
+    await sendNotification();
   };
 
   return (
@@ -60,7 +90,7 @@ const OpenPosition: FC<OpenPositionProps> = ({
         disabled={!isLiquidable}
         onClick={handleClosePosition}
       >
-        Close Position
+        Liquidate
       </Button>
     </Box>
   );

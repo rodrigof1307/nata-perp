@@ -49,8 +49,10 @@ const Liquidation: FC<LiquidationProps> = ({}) => {
       .filter(
         (position: Position) =>
           position.token ===
-          //@ts-ignore
-          cryptosInfo[selectedCryptoID].wrappedTokenZKEvmAddress
+            //@ts-ignore
+            cryptosInfo[selectedCryptoID].wrappedTokenZKEvmAddress &&
+          position.closed === false &&
+          position.liquidated === false
       )
       .map((position: Position) => ({
         id: position.positionId,
@@ -59,6 +61,7 @@ const Liquidation: FC<LiquidationProps> = ({}) => {
         size: position.size,
         entryPrice: position.price, // Assuming 'data?.price' is global or fetched from elsewhere
         token: position.token,
+        user: position.user,
       }));
   };
 
@@ -104,6 +107,7 @@ const Liquidation: FC<LiquidationProps> = ({}) => {
               currentPrice={dataCryptoInfo.price}
               selectedCryptoID={selectedCryptoID}
               tokenAddress={position.token}
+              user={position.user}
             />
           ))}
       </div>
