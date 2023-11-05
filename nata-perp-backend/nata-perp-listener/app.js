@@ -79,7 +79,7 @@ const handlePositionOpened = async (user, id, chainId, event) => {
     .post("http://localhost:3001/positions", {
       position: {
         positionId: id,
-        chainId: chainId,
+        chainId: chainId.toString(),
         user: user,
         token: position["token"],
         timestamp: new Date(parseInt(position["timestamp"]) * 1000),
