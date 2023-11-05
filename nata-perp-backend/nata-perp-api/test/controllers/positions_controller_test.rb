@@ -12,7 +12,7 @@ class PositionsControllerTest < ActionDispatch::IntegrationTest
 
   test "should create position" do
     assert_difference("Position.count") do
-      post positions_url, params: { position: { closed: @position.closed, collateral: @position.collateral, liquidated: @position.liquidated, posType: @position.posType, positionId: @position.positionId, price: @position.price, size: @position.size, timestamp: @position.timestamp, token: @position.token, user: @position.user } }, as: :json
+      post positions_url, params: { position: { chainId: @position.chainId, closed: @position.closed, collateral: @position.collateral, liquidated: @position.liquidated, posType: @position.posType, positionId: @position.positionId, price: @position.price, size: @position.size, token: @position.token, user: @position.user } }, as: :json
     end
 
     assert_response :created
@@ -24,7 +24,7 @@ class PositionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update position" do
-    patch position_url(@position), params: { position: { closed: @position.closed, collateral: @position.collateral, liquidated: @position.liquidated, posType: @position.posType, positionId: @position.positionId, price: @position.price, size: @position.size, timestamp: @position.timestamp, token: @position.token, user: @position.user } }, as: :json
+    patch position_url(@position), params: { position: { chainId: @position.chainId, closed: @position.closed, collateral: @position.collateral, liquidated: @position.liquidated, posType: @position.posType, positionId: @position.positionId, price: @position.price, size: @position.size, token: @position.token, user: @position.user } }, as: :json
     assert_response :success
   end
 
