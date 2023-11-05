@@ -17,10 +17,10 @@ const nataPerpAbi = [
   "function positions(address, bytes32) view returns (address token, uint256 timestamp, uint256 size, uint256 collateral, uint256 price, uint8 posType, bool closed)",
   "event PositionOpened(address indexed user, bytes32 indexed id, uint256 chainid)",
   "event PositionClosed(address indexed user, bytes32 indexed id)",
-  "event CollateralIncreased(address indexed user, bytes32 indexed id, uint256 collateralIncreased)",
-  "event CollateralDecreased(address indexed user, bytes32 indexed id, uint256 collateralDecreased)",
-  "event SizeIncreased(address indexed user, bytes32 indexed id, uint256 sizeIncreased)",
-  "event SizeDecreased(address indexed user, bytes32 indexed id, uint256 sizeDecreased, int256 realizedPnl)",
+  "event CollateralIncreased(address indexed user, bytes32 indexed id, uint256 newCollateral)",
+  "event CollateralDecreased(address indexed user, bytes32 indexed id, uint256 newCollateral)",
+  "event SizeIncreased(address indexed user, bytes32 indexed id, uint256 newSize)",
+  "event SizeDecreased(address indexed user, bytes32 indexed id, uint256 newSize, int256 realizedPnl)",
 ];
 // CONTRACT
 const nataPerpContractPolygon = new ethers.Contract(
