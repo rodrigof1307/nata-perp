@@ -17,7 +17,7 @@ export const usePerpContractWrite = ({
       case 1442:
         setPerpAddress(process.env.NEXT_PUBLIC_PERP_ADDRESS_ZK_EVM!);
         break;
-      case 10200:
+      case 100:
         setPerpAddress(process.env.NEXT_PUBLIC_PERP_ADDRESS_GNOSIS!);
         break;
     }

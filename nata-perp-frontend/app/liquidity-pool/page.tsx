@@ -16,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { createPublicClient, http } from "viem";
 import { gnosis, polygonZkEvmTestnet } from "viem/chains";
 import { perpABI } from "@/lib/abi";
-import { set } from "react-hook-form";
 
 interface LiquidityPoolProps {}
 
@@ -32,14 +31,6 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
   const { address: userAddress } = useAccount();
 
   useEffect(() => {
-    console.log("chainID ", chainID);
-  }, [chainID]);
-
-  useEffect(() => {
-    console.log("userAddress ", userAddress);
-  }, [userAddress]);
-
-  useEffect(() => {
     switch (chainID) {
       case 1442:
         const client1 = createPublicClient({
@@ -48,7 +39,7 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
         });
         setPublicClient(client1);
         break;
-      case 10200:
+      case 100:
         const client2 = createPublicClient({
           chain: gnosis,
           transport: http(),
@@ -169,7 +160,7 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
         setTokenAddress(cryptosInfo[selectedCryptoID].wrappedTokenZKEvmAddress);
         setPerpAddress(process.env.NEXT_PUBLIC_PERP_ADDRESS_ZK_EVM!);
         break;
-      case 10200:
+      case 100:
         setTokenAddress(
           // @ts-ignore
           cryptosInfo[selectedCryptoID].wrappedTokenGnosisAddress
