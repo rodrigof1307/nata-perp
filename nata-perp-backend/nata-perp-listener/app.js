@@ -75,7 +75,6 @@ http
 
 // HANDLERS
 const handlePositionOpened = async (user, id, chainId, event) => {
-  console.log(`chainId: ${chainId.toString()}`);
   let position = (chainId.toString() == "1442") ? await nataPerpContractPolygon.positions(user, id) : await nataPerpContractGnosis.positions(user, id);
 
   axios
@@ -119,20 +118,64 @@ const handlePositionClosed = (user, id, event) => {
     });
 };
 
-const handleCollateralIncreased = (user, id, collateralIncreased, event) => {
-  console.log("COLLATERAL INCREASED");
+const handleCollateralIncreased = (user, id, newCollateral, event) => {
+  axios
+    .put(`http://localhost:3001/positions/${id}`, {
+      collateral: parseFloat(
+        ethers.utils.formatEther(newCollateral)
+      ),
+    })
+    .then(function (response) {
+      console.log("COLLATERAL INCREASED");
+    })
+    .catch(function (error) {
+      console.log("ERROR: COLLATERAL INCREASED");
+    });
 };
 
-const handleCollateralDecreased = (user, id, collateralDecreased, event) => {
-  console.log("COLLATERAL DECREASED");
+const handleCollateralDecreased = (user, id, newCollateral, event) => {
+  axios
+    .put(`http://localhost:3001/positions/${id}`, {
+      collateral: parseFloat(
+        ethers.utils.formatEther(newCollateral)
+      ),
+    })
+    .then(function (response) {
+      console.log("COLLATERAL DECREASED");
+    })
+    .catch(function (error) {
+      console.log("ERROR: COLLATERAL DECREASED");
+    });
 };
 
-const handleSizeIncreased = (user, id, sizeIncreased, event) => {
-  console.log("SIZE INCREASED");
+const handleSizeIncreased = (user, id, newSize, event) => {
+  axios
+    .put(`http://localhost:3001/positions/${id}`, {
+      size: parseFloat(
+        ethers.utils.formatEther(newSize)
+      ),
+    })
+    .then(function (response) {
+      console.log("SIZE INCREASED");
+    })
+    .catch(function (error) {
+      console.log("ERROR: SIZE INCREASED");
+    });
 };
 
-const handleSizeDecreased = (user, id, sizeDecreased, realizedPnl, event) => {
-  console.log("SIZE DECREASED");
+const handleSizeDecreased = (user, id, newSize, realizedPnl, event) => {
+  axios
+    .put(`http://localhost:3001/positions/${id}`, {
+      size: parseFloat(
+        ethers.utils.formatEther(newSize)
+      ),
+    })
+    .then(function (response) {
+      console.log("SIZE DECREASED");
+    })
+    .catch(function (error) {
+      console.log("ERROR: SIZE DECREASED");
+    });
 };
 
 const handleUserLiquidated = (user, id, liquidator, event) => {
