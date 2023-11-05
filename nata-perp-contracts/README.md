@@ -1,5 +1,5 @@
 ## nata-perp-contracts
-Make a brief explanation of the system and how to ccontracts work.
+Make a brief explanation of the system and how to contracts work.
 
 - Traders can decrease the size of their position and realize a proportional amount of their PnL.
 - Traders can decrease the collateral of their position.
@@ -15,10 +15,15 @@ Addresses of the contracts in the zkEVM:
 * Oracle WETH : 0x8Ba43F8Fa2fC13D7EEDCeb9414CDbB6643483C34
 
 Addresses of the contracts in the Gnosis Chain:
-* Perpetuals :
-* Mock WBTC :
-* Mock WETH :
+* Perpetuals : 0x57B0d98Fdd5621ACdf92047e62Ba39D9A4582dd6
+* WBTC : 0x8e5bBbb09Ed1ebdE8674Cda39A0c169401db4252
+* WETH : 0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1
+* Oracle WBTC : 0xA7226d85CE5F0DE97DCcBDBfD38634D6391d0584
+* Oracle WETH : 0xc8A1F9461115EF3C1E84Da6515A88Ea49CA97660
 
 call setAllowedTokens with:
 1 -> Mock WBTC () -> WBTC Oracle ()
 2 -> Mock WETH () -> WETH Oracle ()
+
+### Notes
+All contracts leverage interfaces and utilities from OpenZeppellin
