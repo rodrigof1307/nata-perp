@@ -167,14 +167,14 @@ const Trading: FC = ({}) => {
 
   const fetchPositions = async () => {
     const { data } = await axios.get("http://localhost:3001/positions");
-    console.log(typeof data[0].collateral);
     return data
-      .filter(
-        (position: Position) =>
+      .filter((position: Position) => {
+        return (
           position.user === account &&
           position.closed === false &&
           position.liquidated === false
-      )
+        );
+      })
       .map((position: Position) => ({
         id: position.positionId,
         type: position.posType, // Assuming you have this kind of mapping
