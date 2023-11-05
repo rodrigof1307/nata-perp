@@ -28,6 +28,8 @@ import { usePerpContractWrite } from "@/hooks/usePerpContractWrite";
 import { cryptosInfo } from "@/lib/cryptosInfo";
 import { createPublicClient, http } from "viem";
 import { gnosis, polygonZkEvmTestnet } from "viem/chains";
+import { useWeb3AuthModalPack } from "@/context/useWeb3AuthModalPackContext";
+import { Web3AuthModalPack, Web3AuthConfig } from "@safe-global/auth-kit";
 
 interface TradingProps {}
 
@@ -128,6 +130,25 @@ const Trading: FC<TradingProps> = ({}) => {
     reset,
   } = useForm();
 
+  const { web3AuthModalPack } = useWeb3AuthModalPack();
+
+  useEffect(() => {
+    console.log("web3AuthModalPack");
+    console.log(web3AuthModalPack);
+    if (web3AuthModalPack) {
+      const response = (web3AuthModalPack as Web3AuthModalPack).getProvider();
+      console.log("---");
+      console.log(response);
+      console.log("---");
+    }
+  }, [web3AuthModalPack]);
+
+  const openPositionSafe = async () => {
+    if (!web3AuthModalPack) {
+      return;
+    }
+  };
+
   return (
     <div className="flex flex-1 flex-col items-center justify-between p-12">
       <MainTokenInfo
@@ -165,12 +186,15 @@ const Trading: FC<TradingProps> = ({}) => {
             onSubmit={handleSubmit(async (data) => {
               let size = Number(data.collateral) * Number(data.leverage);
 
-              await openPosition({
-                token: tokenAddress,
-                size: size,
-                collateralAmount: Number(data.collateral),
-                posType: position,
-              });
+              if (!web3AuthModalPack) {
+                await openPosition({
+                  token: tokenAddress,
+                  size: size,
+                  collateralAmount: Number(data.collateral),
+                  posType: position,
+                });
+              } else {
+              }
 
               reset();
             })}

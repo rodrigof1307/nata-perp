@@ -16,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { createPublicClient, http } from "viem";
 import { gnosis, polygonZkEvmTestnet } from "viem/chains";
 import { perpABI } from "@/lib/abi";
-import { set } from "react-hook-form";
 
 interface LiquidityPoolProps {}
 

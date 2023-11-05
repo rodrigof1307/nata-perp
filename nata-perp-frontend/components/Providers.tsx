@@ -13,6 +13,8 @@ import {
 } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
 
+import { Web3AuthModalPackProvider } from "@/context/useWeb3AuthModalPackContext";
+
 const wagmiMetadata = {
   title: "Nata Perp",
   description: "ETH Lisbon Hackathon Project",
@@ -46,8 +48,12 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(new QueryClient());
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <WagmiConfigOriginal config={wagmiConfig}>{children}</WagmiConfigOriginal>
-    </QueryClientProvider>
+    <Web3AuthModalPackProvider>
+      <QueryClientProvider client={queryClient}>
+        <WagmiConfigOriginal config={wagmiConfig}>
+          {children}
+        </WagmiConfigOriginal>
+      </QueryClientProvider>
+    </Web3AuthModalPackProvider>
   );
 }

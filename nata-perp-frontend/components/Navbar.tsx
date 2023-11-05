@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FC } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import SafeButton from "./SafeButton";
 
 const Navbar: FC = ({}) => {
   const pathname = usePathname();
@@ -33,7 +34,10 @@ const Navbar: FC = ({}) => {
           Liquidation
         </Link>
       </div>
-      <w3m-button />
+      <div className="flex flex-row gap-4">
+        <SafeButton />
+        {/*<w3m-button />*/}
+      </div>
     </div>
   );
 };
