@@ -11,7 +11,7 @@ const providerGnosis = ethers.getDefaultProvider("https://rpc.ankr.com/gnosis");
 // ADDRESS
 const nataPerpContractAddressPolygon =
   "0x1d2A5e157022293A0bC12C9b9Fd20Bc0Cf320869";
-const nataPerpContractAddressGnosis = "TODO";
+const nataPerpContractAddressGnosis = "0x57B0d98Fdd5621ACdf92047e62Ba39D9A4582dd6";
 // ABI
 const nataPerpAbi = [
   "function positions(address, bytes32) view returns (address token, uint256 timestamp, uint256 size, uint256 collateral, uint256 price, uint8 posType, bool closed)",
@@ -21,6 +21,7 @@ const nataPerpAbi = [
   "event CollateralDecreased(address indexed user, bytes32 indexed id, uint256 newCollateral)",
   "event SizeIncreased(address indexed user, bytes32 indexed id, uint256 newSize)",
   "event SizeDecreased(address indexed user, bytes32 indexed id, uint256 newSize, int256 realizedPnl)",
+  "event UserLiquidated(address indexed user, bytes32 indexed id, address liquidator)"
 ];
 // CONTRACT
 const nataPerpContractPolygon = new ethers.Contract(
@@ -28,11 +29,11 @@ const nataPerpContractPolygon = new ethers.Contract(
   nataPerpAbi,
   providerPolygon
 );
-// const nataPerpContractGnosis = new ethers.Contract(
-//   nataPerpContractAddressGnosis,
-//   nataPerpAbi,
-//   providerGnosis
-// );
+const nataPerpContractGnosis = new ethers.Contract(
+  nataPerpContractAddressGnosis,
+  nataPerpAbi,
+  providerGnosis
+);
 
 // SERVER
 http
@@ -54,26 +55,28 @@ http
       );
       nataPerpContractPolygon.on("SizeIncreased", handleSizeIncreased);
       nataPerpContractPolygon.on("SizeDecreased", handleSizeDecreased);
+      nataPerpContractPolygon.on("UserLiquidated", handleUserLiquidated);
       // Gnosis
-      // nataPerpContractGnosis.on("PositionOpened", handlePositionOpened);
-      // nataPerpContractGnosis.on("PositionClosed", handlePositionClosed);
-      // nataPerpContractGnosis.on(
-      //   "CollateralIncreased",
-      //   handleCollateralIncreased
-      // );
-      // nataPerpContractGnosis.on(
-      //   "CollateralDecreased",
-      //   handleCollateralDecreased
-      // );
-      // nataPerpContractGnosis.on("SizeIncreased", handleSizeIncreased);
-      // nataPerpContractGnosis.on("SizeDecreased", handleSizeDecreased);
+      nataPerpContractGnosis.on("PositionOpened", handlePositionOpened);
+      nataPerpContractGnosis.on("PositionClosed", handlePositionClosed);
+      nataPerpContractGnosis.on(
+        "CollateralIncreased",
+        handleCollateralIncreased
+      );
+      nataPerpContractGnosis.on(
+        "CollateralDecreased",
+        handleCollateralDecreased
+      );
+      nataPerpContractGnosis.on("SizeIncreased", handleSizeIncreased);
+      nataPerpContractGnosis.on("SizeDecreased", handleSizeDecreased);
+      nataPerpContractGnosis.on("UserLiquidated", handleUserLiquidated);
     }
   });
 
 // HANDLERS
 const handlePositionOpened = async (user, id, chainId, event) => {
   console.log(`chainId: ${chainId.toString()}`);
-  let position = await nataPerpContractPolygon.positions(user, id);
+  let position = (chainId.toString() == "1442") ? await nataPerpContractPolygon.positions(user, id) : await nataPerpContractGnosis.positions(user, id);
 
   axios
     .post("http://localhost:3001/positions", {
@@ -131,3 +134,18 @@ const handleSizeIncreased = (user, id, sizeIncreased, event) => {
 const handleSizeDecreased = (user, id, sizeDecreased, realizedPnl, event) => {
   console.log("SIZE DECREASED");
 };
+
+const handleUserLiquidated = (user, id, liquidator, event) => {
+  axios
+    .put(`http://localhost:3001/positions/${id}`, {
+      position: {
+        liquidated: true,
+      },
+    })
+    .then(function (response) {
+      console.log("POSITION LIQUIDATED");
+    })
+    .catch(function (error) {
+      console.log("ERROR: POSITION LIQUIDATED");
+    });
+}
