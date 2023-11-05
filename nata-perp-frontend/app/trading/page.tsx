@@ -28,21 +28,56 @@ import { usePerpContractWrite } from "@/hooks/usePerpContractWrite";
 import { cryptosInfo } from "@/lib/cryptosInfo";
 import { createPublicClient, http } from "viem";
 import { gnosis, polygonZkEvmTestnet } from "viem/chains";
+import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+import OpenPosition from "@/components/OpenPosition";
 
 interface TradingProps {}
 
-enum Position {
+enum PositionType {
   Long = 0,
   Short = 1,
 }
 
+type Position = {
+  id: number;
+  positionId: string;
+  user: string;
+  chainId: null | string;
+  closed: boolean;
+  collateral: number;
+  created_at: string;
+  liquidated: boolean;
+  posType: "LONG" | "SHORT"; // Assuming these are the possible types
+  price: number;
+  size: number;
+  token: string;
+  updated_at: string;
+};
+
 const Trading: FC<TradingProps> = ({}) => {
   const [selectedCryptoID, setSelectedCryptoID] = useState("bitcoin");
-  const [position, setPosition] = useState(Position.Long);
+  const [position, setPosition] = useState(PositionType.Long);
   const chainID = useChainId();
   const [tokenAddress, setTokenAddress] = useState("");
   const [publicClient, setPublicClient] = useState<any>();
   const [perpAddress, setPerpAddress] = useState("");
+  const { address: account } = useAccount();
+
+  const fetchCryptoInfo = async ({ queryKey }: any) => {
+    const { data } = await axios.get(`/api/getInfo/${queryKey[1]}`);
+    return data;
+  };
+
+  const { data: dataCryptoInfo } = useQuery({
+    queryKey: ["cryptoInfo", selectedCryptoID],
+    queryFn: fetchCryptoInfo,
+    retry: 1,
+    cacheTime: 1000 * 60 * 60 * 24,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+  });
 
   useEffect(() => {
     if (cryptosInfo === undefined) {
@@ -104,7 +139,7 @@ const Trading: FC<TradingProps> = ({}) => {
     token: string;
     size: number;
     collateralAmount: number;
-    posType: Position;
+    posType: PositionType;
   }) => {
     const response1 = await writeRequestApproval({
       args: [perpAddress as `0x${string}`, BigInt(collateralAmount)],
@@ -128,6 +163,36 @@ const Trading: FC<TradingProps> = ({}) => {
     reset,
   } = useForm();
 
+  const fetchPositions = async () => {
+    const { data } = await axios.get("http://localhost:3001/positions");
+    return data
+      .filter(
+        (position: Position) =>
+          position.user === account &&
+          position.closed === false &&
+          position.liquidated === false
+      )
+      .map((position: Position) => ({
+        id: position.positionId,
+        type: position.posType, // Assuming you have this kind of mapping
+        collateral: position.collateral,
+        size: position.size,
+        entryPrice: position.price, // Assuming 'data?.price' is global or fetched from elsewhere
+        token: position.token,
+        user: position.user,
+      }));
+  };
+
+  const { data: dataPositions, refetch } = useQuery({
+    queryKey: ["positions"],
+    queryFn: fetchPositions,
+    retry: 1,
+    cacheTime: 1000 * 60 * 60 * 24,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+  });
+
   return (
     <div className="flex flex-1 flex-col items-center justify-between p-12">
       <MainTokenInfo
@@ -141,22 +206,22 @@ const Trading: FC<TradingProps> = ({}) => {
             <button
               className={cn(
                 "rounded-lg flex-1 hover:bg-orange-600/30 bg-zinc-700 text-center text-white py-2",
-                position == Position.Long
+                position == PositionType.Long
                   ? "bg-orange-600 hover:bg-orange-600"
                   : ""
               )}
-              onClick={() => setPosition(Position.Long)}
+              onClick={() => setPosition(PositionType.Long)}
             >
               Long
             </button>
             <button
               className={cn(
                 "rounded-lg flex-1 hover:bg-orange-600/30 bg-zinc-700 text-center text-white py-2",
-                position == Position.Short
+                position == PositionType.Short
                   ? "bg-orange-600 hover:bg-orange-600"
                   : ""
               )}
-              onClick={() => setPosition(Position.Short)}
+              onClick={() => setPosition(PositionType.Short)}
             >
               Short
             </button>
@@ -233,98 +298,28 @@ const Trading: FC<TradingProps> = ({}) => {
           </form>
         </Box>
       </div>
+      <div className="mt-6 flex w-full flex-col items-center justify-between gap-4">
+        <h2 className="w-full text-left text-2xl font-semibold text-white">
+          Your Open Positions
+        </h2>
+        {dataCryptoInfo &&
+          dataPositions?.map((position: any) => (
+            <OpenPosition
+              key={position.id}
+              id={position.id}
+              type={position.type}
+              collateral={position.collateral}
+              size={position.size}
+              entryPrice={position.entryPrice}
+              currentPrice={dataCryptoInfo.price}
+              selectedCryptoID={selectedCryptoID}
+              tokenAddress={position.token}
+              user={position.user}
+              liquidateMode={false}
+            />
+          ))}
+      </div>
     </div>
   );
-
-  //   const { address } = useAccount();
-  //   const chainId = useChainId();
-  //   const { signMessageAsync } = useSignMessage();
-  //   const isReady = useInitWeb3InboxClient({
-  //     projectId: process.env.NEXT_PUBLIC_PROJECT_ID ?? "",
-  //     domain: process.env.NEXT_PUBLIC_DOMAIN ?? "",
-  //     isLimited: false,
-  //   });
-  //   const { setAccount, isRegistered, isRegistering, register } = useW3iAccount();
-  //   useEffect(() => {
-  //     if (!address) return;
-  //     setAccount(`eip155:${chainId}:${address}`);
-  //   }, [address, setAccount, chainId]);
-  //   const performRegistration = useCallback(async () => {
-  //     if (!address) return;
-  //     try {
-  //       await register((message) => signMessageAsync({ message }));
-  //     } catch (registerIdentityError) {
-  //       alert(registerIdentityError);
-  //     }
-  //   }, [signMessageAsync, register, address]);
-  //   useEffect(() => {
-  //     performRegistration();
-  //   }, [performRegistration]);
-  //   const { isSubscribed, isSubscribing, subscribe } = useManageSubscription();
-  //   const performSubscribe = useCallback(async () => {
-  //     const response1 = await performRegistration();
-  //     const response2 = await subscribe();
-  //   }, [subscribe, performRegistration]);
-  //   const { subscription } = useSubscription();
-  //   const { messages } = useMessages();
-  //   const notificationClick = async () => {
-  //     await fetch(
-  //       `https://notify.walletconnect.com/${
-  //         process.env.NEXT_PUBLIC_PROJECT_ID ?? ""
-  //       }/notify`,
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTIFY ?? ""}`,
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify({
-  //           notification: {
-  //             type: "0de41dc4-845a-4f70-b420-809cc832d71e", // Notification type ID copied from Cloud
-  //             title: "Rodrigo your position is open",
-  //             body: "Notification test",
-  //           },
-  //           accounts: [
-  //             `eip155:${chainId}:${address}`, // CAIP-10 account ID
-  //           ],
-  //         }),
-  //       }
-  //     );
-  //   };
-  //   return (
-  //     <div className="flex flex-col items-center justify-center font-semibold text-orange-500">
-  //       <h1>Trading page</h1>
-  //       {!isRegistered ? (
-  //         <Button onClick={performRegistration} disabled={isRegistering}>
-  //           {isRegistering ? "Signing..." : "Sign"}
-  //         </Button>
-  //       ) : (
-  //         <>
-  //           {!isSubscribed ? (
-  //             <>
-  //               <Button onClick={performSubscribe} disabled={isSubscribing}>
-  //                 {isSubscribing
-  //                   ? "Subscribing..."
-  //                   : "Subscribe to notifications"}
-  //               </Button>
-  //             </>
-  //           ) : (
-  //             <div className="w-4/5">
-  //               <div>You are subscribed</div>
-  //               <div>Subscription: {JSON.stringify(subscription)}</div>
-  //               <div>
-  //                 Messages:{" "}
-  //                 {JSON.stringify(messages.map((message) => message.message))}
-  //               </div>
-  //               <Button onClick={notificationClick}>
-  //                 Send me a notification
-  //               </Button>
-  //             </div>
-  //           )}
-  //         </>
-  //       )}
-  //     </div>
-  //   );
-  //
 };
 export default Trading;

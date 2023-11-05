@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { FC, useEffect, useState } from "react";
 import { cryptosInfo } from "@/lib/cryptosInfo";
+import { useAccount } from "wagmi";
 
 type Position = {
   id: number;
@@ -26,6 +27,8 @@ type Position = {
 interface LiquidationProps {}
 
 const Liquidation: FC<LiquidationProps> = ({}) => {
+  const { address: account } = useAccount();
+
   const [selectedCryptoID, setSelectedCryptoID] = useState("bitcoin");
 
   const fetchCryptoInfo = async ({ queryKey }: any) => {
@@ -108,6 +111,7 @@ const Liquidation: FC<LiquidationProps> = ({}) => {
               selectedCryptoID={selectedCryptoID}
               tokenAddress={position.token}
               user={position.user}
+              liquidateMode={account !== position.user}
             />
           ))}
       </div>

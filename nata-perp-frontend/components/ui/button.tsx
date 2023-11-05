@@ -14,13 +14,14 @@ const buttonVariants = cva(
         full: "bg-orange-600 text-white hover:bg-orange-600/80",
       },
       size: {
-        default: "rounded-md px-4 py-2 text-sm",
+        sm: "rounded-md px-4 py-2 text-sm",
+        mid: "rounded-md px-6 py-3",
         lg: "rounded-lg px-9 py-4 text-xl",
       },
     },
     defaultVariants: {
       variant: "default",
-      size: "default",
+      size: "sm",
     },
   }
 );

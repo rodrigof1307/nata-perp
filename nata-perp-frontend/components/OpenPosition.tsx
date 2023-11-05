@@ -16,6 +16,7 @@ interface OpenPositionProps {
   selectedCryptoID: string;
   tokenAddress: string;
   user: string;
+  liquidateMode: boolean;
 }
 
 const OpenPosition: FC<OpenPositionProps> = ({
@@ -28,8 +29,14 @@ const OpenPosition: FC<OpenPositionProps> = ({
   selectedCryptoID,
   tokenAddress,
   user,
+  liquidateMode,
 }) => {
-  const { writeAsync: writeClosePosition } = usePerpContractWrite({
+  const { writeAsync: writeLiquidate } = usePerpContractWrite({
+    functionName: "liquidate",
+    selectedCryptoID,
+  });
+
+  const { writeAsync: writeClose } = usePerpContractWrite({
     functionName: "closePosition",
     selectedCryptoID,
   });
@@ -43,7 +50,7 @@ const OpenPosition: FC<OpenPositionProps> = ({
 
   const chainId = useChainId();
 
-  const sendNotification = async () => {
+  const sendNotification = async (title: string) => {
     await fetch(
       `https://notify.walletconnect.com/${
         process.env.NEXT_PUBLIC_PROJECT_ID ?? ""
@@ -57,7 +64,7 @@ const OpenPosition: FC<OpenPositionProps> = ({
         body: JSON.stringify({
           notification: {
             type: "0de41dc4-845a-4f70-b420-809cc832d71e", // Notification type ID copied from Cloud
-            title: "Your position has been closed!",
+            title: title,
             body: "Position id: " + id,
           },
           accounts: [
@@ -68,11 +75,18 @@ const OpenPosition: FC<OpenPositionProps> = ({
     );
   };
 
-  const handleClosePosition = async () => {
-    await writeClosePosition({
+  const handleClose = async () => {
+    await writeClose({
       args: [tokenAddress, id],
     });
-    await sendNotification();
+    await sendNotification("You closed your position!");
+  };
+
+  const handleLiquidate = async () => {
+    await writeLiquidate({
+      args: [user, id],
+    });
+    await sendNotification("Your position has been liquidated!");
   };
 
   return (
@@ -87,10 +101,11 @@ const OpenPosition: FC<OpenPositionProps> = ({
       <div className="flex-1" />
       <Button
         variant={"full"}
-        disabled={!isLiquidable}
-        onClick={handleClosePosition}
+        size={"mid"}
+        disabled={liquidateMode && !isLiquidable}
+        onClick={liquidateMode ? handleLiquidate : handleClose}
       >
-        Liquidate
+        {liquidateMode ? "Liquidate" : "Close"}
       </Button>
     </Box>
   );
