@@ -29,6 +29,8 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
   const [publicClient, setPublicClient] = useState<any>();
   const [userFees, setUserFees] = useState(0);
   const { address: userAddress } = useAccount();
+  const [isLoadingAdd, setIsLoadingAdd] = useState(false);
+  const [isLoadingWithdraw, setIsLoadingWithdraw] = useState(false);
 
   useEffect(() => {
     switch (chainID) {
@@ -72,14 +74,6 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
       args: [userAddress, tokenAddress],
     });
 
-  useEffect(() => {
-    console.log("tokenAddress should work ", tokenAddress);
-  }, [tokenAddress]);
-
-  useEffect(() => {
-    console.log("tokenLiquidity ", tokenLiquidity);
-  }, [tokenLiquidity]);
-
   const { writeAsync: writeRequestApproval } = useContractWrite({
     address: tokenAddress as `0x${string}`,
     abi: erc20ABI,
@@ -102,6 +96,7 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
   });
 
   const addLiquidity = async () => {
+    setIsLoadingAdd(true);
     const response1 = await writeRequestApproval({
       args: [perpAddress as `0x${string}`, BigInt(additionAmount)],
     });
@@ -119,9 +114,11 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
     });
 
     await generalRefetch();
+    setIsLoadingAdd(false);
   };
 
   const withdrawLiquidity = async () => {
+    setIsLoadingWithdraw(true);
     const response = await writeWithdrawLiquidity({
       args: [tokenAddress, BigInt(withdrawAmount)],
     });
@@ -131,6 +128,7 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
     });
 
     await generalRefetch();
+    setIsLoadingWithdraw(false);
   };
 
   const claimFees = async () => {
@@ -196,11 +194,15 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
             </h1>
 
             <div className="mt-20 flex w-full flex-col items-center justify-between gap-8">
-              <h2 className="w-full text-left text-xl font-light text-orange-600">
-                {`Your Liquidity Contribution: ${userTokenLiquidity}`}
+              <h2 className="w-full text-left text-xl font-semibold text-orange-600">
+                <span className="mr-1 text-xl font-light text-white">
+                  Your Liquidity Contribution:
+                </span>
+                {` ${userTokenLiquidity}`}
               </h2>
-              <h2 className="w-full text-left text-xl font-light text-orange-600">
-                {`Your Fees: ${userFees.toFixed(2)}`}
+              <h2 className="w-full text-left text-xl font-semibold text-orange-600">
+                <span className="mr-1 font-light text-white">Your Fees:</span>
+                {` ${userFees.toFixed(2)}`}
               </h2>
             </div>
           </div>
@@ -214,8 +216,13 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
                   setAdditionAmount(Number(event.target.value) ?? 0);
                 }}
               />
-              <Button size={"lg"} className="flex-1" onClick={addLiquidity}>
-                Add Liquidity
+              <Button
+                size={"lg"}
+                className="flex-1"
+                onClick={addLiquidity}
+                disabled={isLoadingAdd}
+              >
+                {isLoadingAdd ? "Loading..." : "Add Liquidity"}
               </Button>
             </div>
             <div className="flex w-full flex-row items-center justify-between gap-4">
@@ -230,8 +237,9 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
                 size={"lg"}
                 className="flex-1"
                 onClick={withdrawLiquidity}
+                disabled={isLoadingWithdraw}
               >
-                Withdraw Liquidity
+                {isLoadingWithdraw ? "Loading..." : "Withdraw Liquidity"}
               </Button>
             </div>
             <Button size={"lg"} className="w-full" onClick={claimFees}>
@@ -244,11 +252,17 @@ const LiquidityPool: FC<LiquidityPoolProps> = ({}) => {
             Liquidity Pool Distribution
           </h1>
           <div className="mt-20 flex w-full flex-col items-center justify-between gap-8">
-            <h2 className="w-full text-left text-xl font-light text-orange-600">
-              {`Total Pool Liquidity: ${(tokenLiquidity as any)?.total ?? 0}`}
+            <h2 className="w-full text-left text-xl font-semibold text-orange-600">
+              <span className="mr-1 text-xl font-light text-white">
+                Total Pool Liquidity:
+              </span>
+              {` ${(tokenLiquidity as any)?.total ?? 0}`}
             </h2>
-            <h2 className="w-full text-left text-xl font-light text-orange-600">
-              {`Open Interest: ${(tokenLiquidity as any)?.openInterest ?? 0}`}
+            <h2 className="w-full text-left text-xl font-semibold text-orange-600">
+              <span className="mr-1 text-xl font-light text-white">
+                Open Interest:
+              </span>
+              {` ${(tokenLiquidity as any)?.openInterest ?? 0}`}
             </h2>
           </div>
         </div>

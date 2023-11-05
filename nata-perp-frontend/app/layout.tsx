@@ -8,7 +8,7 @@ import Providers from "@/components/Providers";
 const sora = Sora({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Nata Perp",
+  title: "Nata Perp Dex",
   description: "ETH Lisbon Hackathon Project",
 };
 

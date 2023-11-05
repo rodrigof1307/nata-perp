@@ -60,8 +60,8 @@ const Liquidation: FC<LiquidationProps> = ({}) => {
       .map((position: Position) => ({
         id: position.positionId,
         type: position.posType, // Assuming you have this kind of mapping
-        collateral: position.collateral,
-        size: position.size,
+        collateral: position.collateral * 10 ** 18,
+        size: position.size * 10 ** 18,
         entryPrice: position.price, // Assuming 'data?.price' is global or fetched from elsewhere
         token: position.token,
         user: position.user,

@@ -7,7 +7,7 @@ export const cryptosInfo = {
   },
   "wrapped-steth": {
     coinGeckoId: "wrapped-steth",
-    tradingViewSymbold: "CRYPTO:ETHUSD",
+    tradingViewSymbold: "WSTETHUSDC",
     wrappedTokenZKEvmAddress: "0x38cB65FC2c60965FA209Fdf1A8a065F22F14CD54",
     wrappedTokenGnosisAddress: "0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1",
   },

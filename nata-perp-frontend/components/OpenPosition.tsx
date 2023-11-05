@@ -90,10 +90,10 @@ const OpenPosition: FC<OpenPositionProps> = ({
   };
 
   return (
-    <Box className="flex w-full flex-row items-center justify-start rounded-xl p-6 text-center font-light text-orange-600">
+    <Box className="flex w-full flex-row items-center justify-start rounded-xl p-6 text-center font-semibold text-orange-600">
       <h2 className="w-[9%]">{type}</h2>
-      <h2 className="w-[13%]">{collateral}</h2>
-      <h2 className="w-[13%]">{size}</h2>
+      <h2 className="w-[13%]">{collateral.toFixed(2)}</h2>
+      <h2 className="w-[13%]">{size.toFixed(2)}</h2>
       <h2 className="w-[13%]">{entryPrice.toFixed(2) + " $"}</h2>
       <h2 className="w-[13%]">{currentPrice.toFixed(2) + " $"}</h2>
       <h2 className="w-[13%]">{profitAndLoss.toFixed(2) + " $"}</h2>

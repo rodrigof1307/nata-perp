@@ -1,20 +1,7 @@
 "use client";
 
 import { FC, useState } from "react";
-import {
-  useManageSubscription,
-  useSubscription,
-  useW3iAccount,
-  useInitWeb3InboxClient,
-  useMessages,
-} from "@web3inbox/widget-react";
-import {
-  useSignMessage,
-  useAccount,
-  useChainId,
-  erc20ABI,
-  useContractWrite,
-} from "wagmi";
+import { useAccount, useChainId, erc20ABI, useContractWrite } from "wagmi";
 import { useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import MainTokenInfo from "@/components/MainTokenInfo";
@@ -31,8 +18,6 @@ import { gnosis, polygonZkEvmTestnet } from "viem/chains";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import OpenPosition from "@/components/OpenPosition";
-
-interface TradingProps {}
 
 enum PositionType {
   Long = 0,
@@ -55,7 +40,7 @@ type Position = {
   updated_at: string;
 };
 
-const Trading: FC<TradingProps> = ({}) => {
+const Trading: FC = ({}) => {
   const [selectedCryptoID, setSelectedCryptoID] = useState("bitcoin");
   const [position, setPosition] = useState(PositionType.Long);
   const chainID = useChainId();
@@ -63,13 +48,15 @@ const Trading: FC<TradingProps> = ({}) => {
   const [publicClient, setPublicClient] = useState<any>();
   const [perpAddress, setPerpAddress] = useState("");
   const { address: account } = useAccount();
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const fetchCryptoInfo = async ({ queryKey }: any) => {
     const { data } = await axios.get(`/api/getInfo/${queryKey[1]}`);
     return data;
   };
 
-  const { data: dataCryptoInfo } = useQuery({
+  const { data: dataCryptoInfo, refetch: refetchCryptoInfo } = useQuery({
     queryKey: ["cryptoInfo", selectedCryptoID],
     queryFn: fetchCryptoInfo,
     retry: 1,
@@ -78,6 +65,10 @@ const Trading: FC<TradingProps> = ({}) => {
     refetchOnMount: false,
     refetchOnReconnect: false,
   });
+
+  useEffect(() => {
+    refetchCryptoInfo();
+  }, [selectedCryptoID, refetchCryptoInfo]);
 
   useEffect(() => {
     if (cryptosInfo === undefined) {
@@ -119,7 +110,7 @@ const Trading: FC<TradingProps> = ({}) => {
     }
   }, [chainID]);
 
-  const { write: writeOpenPosition } = usePerpContractWrite({
+  const { writeAsync: writeOpenPosition } = usePerpContractWrite({
     functionName: "openPosition",
     selectedCryptoID,
   });
@@ -141,19 +132,30 @@ const Trading: FC<TradingProps> = ({}) => {
     collateralAmount: number;
     posType: PositionType;
   }) => {
+    setLoading(true);
     const response1 = await writeRequestApproval({
       args: [perpAddress as `0x${string}`, BigInt(collateralAmount)],
     });
 
-    const transaction = await publicClient.waitForTransactionReceipt({
+    const transaction1 = await publicClient.waitForTransactionReceipt({
       hash: response1.hash,
     });
 
-    console.log(token, size, collateralAmount, posType);
-    const response = await writeOpenPosition({
+    const response2 = await writeOpenPosition({
       args: [token, BigInt(size), BigInt(collateralAmount), posType],
     });
-    console.log(response);
+
+    const transaction2 = await publicClient.waitForTransactionReceipt({
+      hash: response2.hash,
+    });
+
+    reset();
+    refetch();
+    setLoading(false);
+    setSuccess(true);
+    setTimeout(() => {
+      setSuccess(false);
+    }, 4000);
   };
 
   const {
@@ -165,6 +167,7 @@ const Trading: FC<TradingProps> = ({}) => {
 
   const fetchPositions = async () => {
     const { data } = await axios.get("http://localhost:3001/positions");
+    console.log(typeof data[0].collateral);
     return data
       .filter(
         (position: Position) =>
@@ -175,8 +178,8 @@ const Trading: FC<TradingProps> = ({}) => {
       .map((position: Position) => ({
         id: position.positionId,
         type: position.posType, // Assuming you have this kind of mapping
-        collateral: position.collateral,
-        size: position.size,
+        collateral: position.collateral * 10 ** 18,
+        size: position.size * 10 ** 18,
         entryPrice: position.price, // Assuming 'data?.price' is global or fetched from elsewhere
         token: position.token,
         user: position.user,
@@ -236,8 +239,6 @@ const Trading: FC<TradingProps> = ({}) => {
                 collateralAmount: Number(data.collateral),
                 posType: position,
               });
-
-              reset();
             })}
             className="flex w-full flex-1 flex-col items-center justify-between"
           >
@@ -292,8 +293,13 @@ const Trading: FC<TradingProps> = ({}) => {
               className="w-full"
               size={"lg"}
               type="submit"
+              disabled={loading}
             >
-              Open Position
+              {loading
+                ? "Loading..."
+                : success
+                ? "Position Opened!"
+                : "Open Position"}
             </Button>
           </form>
         </Box>
