@@ -21,6 +21,12 @@ const Liquidation: FC<LiquidationProps> = ({}) => {
     return data;
   };
 
+  const fetchPositions = async () => {
+    const { data } = await axios.get("http://localhost:3001/positions");
+    console.log(data);
+    return data;
+  };
+
   const { data } = useQuery({
     queryKey: ["cryptoInfo", selectedCryptoID],
     queryFn: fetchCryptoInfo,

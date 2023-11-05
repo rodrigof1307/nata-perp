@@ -2,13 +2,13 @@ export const cryptosInfo = {
   bitcoin: {
     coinGeckoId: "bitcoin",
     tradingViewSymbold: "CRYPTO:BTCUSD",
-    wrappedTokenZKEvmAddress: "0xbE9Ce57b7381f09709402189A09dc56deeA758D6",
+    wrappedTokenZKEvmAddress: "0x915C5863E25953BFD500438dEac6a2f8E2467F8d",
     wrappedTokenGnosisAddress: "123",
   },
   ethereum: {
     coinGeckoId: "ethereum",
     tradingViewSymbold: "CRYPTO:ETHUSD",
-    wrappedTokenZKEvmAddress: "0x1dDE5b7474dF1ed611d9ed3d9e815C813143f0d4",
+    wrappedTokenZKEvmAddress: "0x38cB65FC2c60965FA209Fdf1A8a065F22F14CD54",
     wrappedTokenGnosisAddress: "123",
   },
 };
