@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <main className="flex flex-1 flex-col items-center justify-evenly">
       <h1 className="text-4xl font-semibold text-orange-600">
-        Welcome to Nata Trading DEX!
+        Welcome to Nata Perp DEX!
       </h1>
       <div className="flex items-center justify-around">
         <ExplanationBox
