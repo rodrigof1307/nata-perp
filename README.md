@@ -32,3 +32,7 @@ Addresses of the contracts in the Gnosis Chain:
 * WETH : 0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1
 * Oracle WBTC : 0xA7226d85CE5F0DE97DCcBDBfD38634D6391d0584
 * Oracle WETH : 0xc8A1F9461115EF3C1E84Da6515A88Ea49CA97660
+
+### Twitter Link
+
+https://twitter.com/0xrebelo/status/1721117565987021060
