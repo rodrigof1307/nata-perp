@@ -55,7 +55,7 @@ const Trading: FC<TradingProps> = ({}) => {
         setTokenAddress(cryptosInfo[selectedCryptoID].wrappedTokenZKEvmAddress);
         setPerpAddress(process.env.NEXT_PUBLIC_PERP_ADDRESS_ZK_EVM!);
         break;
-      case 10200:
+      case 100:
         setTokenAddress(
           // @ts-ignore
           cryptosInfo[selectedCryptoID].wrappedTokenGnosisAddress
@@ -74,7 +74,7 @@ const Trading: FC<TradingProps> = ({}) => {
         });
         setPublicClient(client1);
         break;
-      case 10200:
+      case 100:
         const client2 = createPublicClient({
           chain: gnosis,
           transport: http(),

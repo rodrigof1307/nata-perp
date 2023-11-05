@@ -3,9 +3,6 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const cryptoId = request.url.slice(request.url.lastIndexOf("/") + 1);
 
-  console.log("cryptoId", cryptoId);
-  console.log("now", new Date().toISOString());
-
   if (!cryptoId) {
     return NextResponse.json(
       { error: "Crypto ID is required" },
