@@ -55,7 +55,7 @@ const SelectTokenItem = ({ cryptoId, title }: SelectTokenItemProps) => {
     <SelectItem value={cryptoId}>
       <div className="flex items-center">
         {!data ? (
-          <div className="mr-2 h-6 w-6 animate-pulse rounded-full bg-orange-600 p-1"></div>
+          <div className="mr-2 h-6 w-6 animate-pulse rounded-full bg-orange-600 p-1" />
         ) : (
           <Image
             src={data.logoUrl}
