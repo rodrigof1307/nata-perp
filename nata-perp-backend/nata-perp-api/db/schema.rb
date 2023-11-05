@@ -10,12 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_11_04_221315) do
+ActiveRecord::Schema[7.0].define(version: 2023_11_05_004843) do
   create_table "positions", force: :cascade do |t|
     t.string "positionId"
+    t.string "chainId"
     t.string "user"
     t.string "token"
-    t.time "timestamp"
     t.float "size"
     t.float "collateral"
     t.float "price"

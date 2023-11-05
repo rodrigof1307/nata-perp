@@ -8,6 +8,11 @@ class PositionsController < ApplicationController
     render json: @positions
   end
 
+  # GET /positions/by_chainid
+  def by_chainid
+    @positions = params[:user] ? Position.where(chainId: params[:chainId], user: params[:user]) : Position.where(chainId: params[:chainId])
+  end
+
   # GET /positions/1
   def show
     render json: @position
@@ -41,11 +46,11 @@ class PositionsController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_position
-      @position = Position.where(positionId: params[:positionId]).first
+      @position = Position.find(params[:id])
     end
 
     # Only allow a list of trusted parameters through.
     def position_params
-      params.require(:position).permit(:positionId, :user, :token, :timestamp, :size, :collateral, :price, :posType, :closed, :liquidated)
+      params.require(:position).permit(:positionId, :chainId, :user, :token, :size, :collateral, :price, :posType, :closed, :liquidated)
     end
 end

@@ -47,12 +47,14 @@ http.createServer(() => {}).listen(port, (error) => {
 })
 
 // HANDLERS
-const handlePositionOpened = async (user, id, event) => {
+const handlePositionOpened = async (user, id, chainId, event) => {
+  console.log(`chainId: ${chainId.toString()}`);
   let position = await nataPerpContract.positions(user, id)
 
   axios.post('http://localhost:3000/positions', {
     position: {
       positionId: id,
+      chainId: chainId,
       user: user,
       token: position["token"],
       timestamp: new Date(parseInt(position["timestamp"]) * 1000),
@@ -101,21 +103,3 @@ const handleSizeIncreased = (user, id, sizeIncreased, event) => {
 const handleSizeDecreased = (user, id, sizeDecreased, realizedPnl, event) => {
   console.log("SIZE DECREASED");
 }
-
-
-/*
-  - Position
-    - token       (string)
-    - timestamp   (time)
-    - size        (float)
-    - collateral  (float)
-    - price       (float)
-    - posType     (string)
-    - closed      (bool)
-    - positionId  (string)
-    - user        (string)
-    - liquidated  (bool)
-*/
-
-// ALL OPEN POSITIONS BY CHAIN ID
-// ALL OPEN POSITIONS BY CHAIN ID PER USER
