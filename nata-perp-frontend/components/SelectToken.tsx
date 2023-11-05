@@ -22,7 +22,7 @@ export function SelectToken({ onValueChange }: SelectTokenProps) {
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          <SelectTokenItem cryptoId="ethereum" title="ETH/USD" />
+          <SelectTokenItem cryptoId="wrapped-steth" title="ETH/USD" />
           <SelectTokenItem cryptoId="bitcoin" title="BTC/USD" />
         </SelectGroup>
       </SelectContent>

@@ -5,6 +5,7 @@ import OpenPosition from "@/components/OpenPosition";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { FC, useEffect, useState } from "react";
+import { cryptosInfo } from "@/lib/cryptosInfo";
 
 type Position = {
   id: number;
@@ -44,17 +45,24 @@ const Liquidation: FC<LiquidationProps> = ({}) => {
 
   const fetchPositions = async () => {
     const { data } = await axios.get("http://localhost:3001/positions");
-    return data.map((position: Position) => ({
-      id: position.positionId,
-      type: position.posType, // Assuming you have this kind of mapping
-      collateral: position.collateral,
-      size: position.size,
-      entryPrice: position.price, // Assuming 'data?.price' is global or fetched from elsewhere
-      token: position.token,
-    }));
+    return data
+      .filter(
+        (position: Position) =>
+          position.token ===
+          //@ts-ignore
+          cryptosInfo[selectedCryptoID].wrappedTokenZKEvmAddress
+      )
+      .map((position: Position) => ({
+        id: position.positionId,
+        type: position.posType, // Assuming you have this kind of mapping
+        collateral: position.collateral,
+        size: position.size,
+        entryPrice: position.price, // Assuming 'data?.price' is global or fetched from elsewhere
+        token: position.token,
+      }));
   };
 
-  const { data: dataPositions } = useQuery({
+  const { data: dataPositions, refetch } = useQuery({
     queryKey: ["positions"],
     queryFn: fetchPositions,
     retry: 1,
@@ -63,6 +71,10 @@ const Liquidation: FC<LiquidationProps> = ({}) => {
     refetchOnMount: false,
     refetchOnReconnect: false,
   });
+
+  useEffect(() => {
+    refetch();
+  }, [selectedCryptoID, refetch]);
 
   return (
     <div className="flex flex-1 flex-col items-center justify-between p-12">
