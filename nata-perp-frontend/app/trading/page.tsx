@@ -299,9 +299,18 @@ const Trading: FC<TradingProps> = ({}) => {
         </Box>
       </div>
       <div className="mt-6 flex w-full flex-col items-center justify-between gap-4">
-        <h2 className="w-full text-left text-2xl font-semibold text-white">
+        <h2 className="mb-2 w-full text-left text-2xl font-semibold text-white">
           Your Open Positions
         </h2>
+        <div className="-mb-1 flex w-full flex-row justify-start px-6 text-center text-white">
+          <h2 className="w-[9%]">Type</h2>
+          <h2 className="w-[13%]">Collateral</h2>
+          <h2 className="w-[13%]">Size</h2>
+          <h2 className="w-[13%]">Entry Price</h2>
+          <h2 className="w-[13%]">Current Price</h2>
+          <h2 className="w-[13%]">Profit and Loss</h2>
+          <h2 className="w-[11%]">Current Leverage</h2>
+        </div>
         {dataCryptoInfo &&
           dataPositions?.map((position: any) => (
             <OpenPosition

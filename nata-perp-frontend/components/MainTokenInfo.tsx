@@ -3,6 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { SelectToken } from "@/components/SelectToken";
 import Box from "@/components/ui/Box";
+import { Button } from "./ui/button";
+import { useAccount, useBalance, useContractWrite } from "wagmi";
+import { cryptosInfo } from "@/lib/cryptosInfo";
+import { wrappedABI } from "@/lib/abi";
 
 interface MainTokenInfoProps {
   selectedCryptoID: string;
@@ -13,6 +17,13 @@ const MainTokenInfo: FC<MainTokenInfoProps> = ({
   selectedCryptoID,
   setSelectedCryptoID,
 }) => {
+  const { address } = useAccount();
+  const { data: balance } = useBalance({
+    address,
+    // @ts-ignore
+    token: cryptosInfo[selectedCryptoID].wrappedTokenZKEvmAddress,
+  });
+
   const fetchCryptoInfo = async ({ queryKey }: any) => {
     const { data } = await axios.get(`/api/getInfo/${queryKey[1]}`);
     return data;
@@ -28,8 +39,22 @@ const MainTokenInfo: FC<MainTokenInfoProps> = ({
     refetchOnReconnect: false,
   });
 
+  const { write } = useContractWrite({
+    //@ts-ignore
+    address: cryptosInfo[selectedCryptoID]
+      .wrappedTokenZKEvmAddress as `0x${string}`,
+    abi: wrappedABI,
+    functionName: "mint",
+  });
+
+  const handleAirdrop = async () => {
+    await write({
+      args: [address, 10000000000],
+    });
+  };
+
   return (
-    <Box className="flex h-16 w-full flex-row items-center justify-between rounded-xl px-10">
+    <Box className="flex w-full flex-row items-center justify-between rounded-xl p-5">
       <SelectToken onValueChange={setSelectedCryptoID} />
       {data && (
         <>
@@ -53,6 +78,13 @@ const MainTokenInfo: FC<MainTokenInfoProps> = ({
             <span className="mr-1 font-light text-white">24h Low:</span>
             {" " + data.priceLow + " $"}
           </h1>
+          <h1 className="font-semibold text-orange-600">
+            <span className="mr-1 font-light text-white">Balance:</span>
+            {" " + balance?.value}
+          </h1>
+          <Button variant={"full"} onClick={handleAirdrop}>
+            Airdrop!
+          </Button>
         </>
       )}
     </Box>
