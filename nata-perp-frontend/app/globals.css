@@ -78,3 +78,22 @@ main * {
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes scrollRightToLeft {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-101%);
+  }
+}
+
+.ticker {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ticker .test {
+  display: flex;
+  animation: scrollRightToLeft 10s linear infinite;
+}

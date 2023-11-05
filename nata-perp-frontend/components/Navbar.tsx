@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { FaBell } from "react-icons/fa";
 import Box from "./ui/Box";
+import Image from "next/image";
 
 const Navbar: FC = ({}) => {
   const pathname = usePathname();
@@ -17,36 +18,72 @@ const Navbar: FC = ({}) => {
     );
 
   return (
-    <div className="flex h-28 w-full items-center justify-between rounded-b-2xl bg-zinc-600/20 px-10">
-      <div className="flex items-center justify-between gap-8">
-        <Link href={"/"} className={getLinkClasses("/")}>
-          Home
-        </Link>
-        <Link href={"/trading"} className={getLinkClasses("/trading")}>
-          Trading
-        </Link>
-        <Link
-          href={"/liquidity-pool"}
-          className={getLinkClasses("/liquidity-pool")}
-        >
-          Liquidity Pool
-        </Link>
-        <Link href={"/liquidation"} className={getLinkClasses("/liquidation")}>
-          Liquidation
-        </Link>
-        <Link href={"/feed"} className={getLinkClasses("/feed")}>
-          Feed
-        </Link>
+    <>
+      {" "}
+      <div className="flex h-28 w-full items-center justify-between rounded-b-2xl bg-zinc-600/20 px-10">
+        <div className="flex items-center justify-between gap-8">
+          <Link href={"/"} className={getLinkClasses("/")}>
+            Home
+          </Link>
+          <Link href={"/trading"} className={getLinkClasses("/trading")}>
+            Trading
+          </Link>
+          <Link
+            href={"/liquidity-pool"}
+            className={getLinkClasses("/liquidity-pool")}
+          >
+            Liquidity Pool
+          </Link>
+          <Link
+            href={"/liquidation"}
+            className={getLinkClasses("/liquidation")}
+          >
+            Liquidation
+          </Link>
+          <Link href={"/feed"} className={getLinkClasses("/feed")}>
+            Feed
+          </Link>
+        </div>
+        <div className="flex flex-row items-center gap-6">
+          <Link href={"/notifications"}>
+            <Box className="my-auto flex h-12 w-12 items-center justify-center rounded-lg border-white">
+              <FaBell className="h-6 w-6 text-white" />
+            </Box>
+          </Link>
+          <w3m-button />
+        </div>
       </div>
-      <div className="flex flex-row items-center gap-6">
-        <Link href={"/notifications"}>
-          <Box className="my-auto flex h-12 w-12 items-center justify-center rounded-lg border-white">
-            <FaBell className="h-6 w-6 text-white" />
-          </Box>
-        </Link>
-        <w3m-button />
+      <div className="ticker w-full">
+        <div className="test flex flex-row">
+          <div className="flex w-[100vw] flex-row justify-evenly">
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+          </div>
+          <div className="flex w-[100vw] flex-row justify-evenly">
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+            <Image src="/nata.png" width={58} height={38} alt="Nata" />
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
