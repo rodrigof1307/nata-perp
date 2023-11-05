@@ -51,9 +51,12 @@ const Liquidation: FC<LiquidationProps> = ({}) => {
     return data
       .filter(
         (position: Position) =>
-          position.token ===
+          (position.token ===
             //@ts-ignore
-            cryptosInfo[selectedCryptoID].wrappedTokenZKEvmAddress &&
+            cryptosInfo[selectedCryptoID].wrappedTokenZKEvmAddress ||
+            position.token ===
+              //@ts-ignore
+              cryptosInfo[selectedCryptoID].wrappedTokenGnosisAddress) &&
           position.closed === false &&
           position.liquidated === false
       )

@@ -1,10 +1,10 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { SelectToken } from "@/components/SelectToken";
 import Box from "@/components/ui/Box";
 import { Button } from "./ui/button";
-import { useAccount, useBalance, useContractWrite } from "wagmi";
+import { useAccount, useBalance, useChainId, useContractWrite } from "wagmi";
 import { cryptosInfo } from "@/lib/cryptosInfo";
 import { wrappedABI } from "@/lib/abi";
 
@@ -23,6 +23,15 @@ const MainTokenInfo: FC<MainTokenInfoProps> = ({
     // @ts-ignore
     token: cryptosInfo[selectedCryptoID].wrappedTokenZKEvmAddress,
   });
+  const { data: gnosisBalance } = useBalance({
+    address,
+    // @ts-ignore
+    token: cryptosInfo[selectedCryptoID].wrappedTokenGnosisAddress,
+  });
+
+  const chainID = useChainId();
+  const [tokenAddress, setTokenAddress] = useState<string>("");
+  const [perpAddress, setPerpAddress] = useState<string>("");
 
   const fetchCryptoInfo = async ({ queryKey }: any) => {
     const { data } = await axios.get(`/api/getInfo/${queryKey[1]}`);
@@ -39,10 +48,26 @@ const MainTokenInfo: FC<MainTokenInfoProps> = ({
     refetchOnReconnect: false,
   });
 
+  useEffect(() => {
+    switch (chainID) {
+      case 1442:
+        // @ts-ignore
+        setTokenAddress(cryptosInfo[selectedCryptoID].wrappedTokenZKEvmAddress);
+        setPerpAddress(process.env.NEXT_PUBLIC_PERP_ADDRESS_ZK_EVM!);
+        break;
+      case 100:
+        setTokenAddress(
+          // @ts-ignore
+          cryptosInfo[selectedCryptoID].wrappedTokenGnosisAddress
+        );
+        setPerpAddress(process.env.NEXT_PUBLIC_PERP_ADDRESS_GNOSIS!);
+        break;
+    }
+  }, [selectedCryptoID]);
+
   const { write } = useContractWrite({
     //@ts-ignore
-    address: cryptosInfo[selectedCryptoID]
-      .wrappedTokenZKEvmAddress as `0x${string}`,
+    address: tokenAddress as `0x${string}`,
     abi: wrappedABI,
     functionName: "mint",
   });
@@ -80,7 +105,7 @@ const MainTokenInfo: FC<MainTokenInfoProps> = ({
           </h1>
           <h1 className="font-semibold text-orange-600">
             <span className="mr-1 font-light text-white">Balance:</span>
-            {" " + balance?.value}
+            {" " + (chainID === 100 ? gnosisBalance?.value : balance?.value)}
           </h1>
           <Button variant={"full"} onClick={handleAirdrop}>
             Airdrop!
