@@ -4,7 +4,7 @@ import MainTokenInfo from "@/components/MainTokenInfo";
 import OpenPosition from "@/components/OpenPosition";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 enum Position {
   Long = 0,
@@ -21,12 +21,6 @@ const Liquidation: FC<LiquidationProps> = ({}) => {
     return data;
   };
 
-  const fetchPositions = async () => {
-    const { data } = await axios.get("http://localhost:3001/positions");
-    console.log(data);
-    return data;
-  };
-
   const { data } = useQuery({
     queryKey: ["cryptoInfo", selectedCryptoID],
     queryFn: fetchCryptoInfo,
@@ -36,6 +30,26 @@ const Liquidation: FC<LiquidationProps> = ({}) => {
     refetchOnMount: false,
     refetchOnReconnect: false,
   });
+
+  const fetchPositions = async () => {
+    const { data } = await axios.get("http://localhost:3001/positions");
+    console.log(data);
+    return data;
+  };
+
+  const { data: dataPositions } = useQuery({
+    queryKey: ["positions"],
+    queryFn: fetchPositions,
+    retry: 1,
+    cacheTime: 1000 * 60 * 60 * 24,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+  });
+
+  useEffect(() => {
+    console.log(dataPositions);
+  }, [dataPositions]);
 
   return (
     <div className="flex flex-1 flex-col items-center justify-between p-12">
