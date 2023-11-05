@@ -112,6 +112,7 @@ const Liquidation: FC<LiquidationProps> = ({}) => {
               tokenAddress={position.token}
               user={position.user}
               liquidateMode={account !== position.user}
+              onComplete={refetch}
             />
           ))}
       </div>

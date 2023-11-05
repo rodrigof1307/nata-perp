@@ -44,7 +44,9 @@ const Notifications: FC = () => {
     const response2 = await subscribe();
   }, [subscribe, performRegistration]);
 
-  const { messages } = useMessages(`eip155:${chainId}:${address}`);
+  const { messages } = useMessages(
+    `eip155:${chainId}:${"0x1Cd5956d6BDb1692e92113A3F2130435333e178D"}`
+  );
 
   if (!isReady) {
     return (
@@ -70,7 +72,7 @@ const Notifications: FC = () => {
       ) : (
         <div className="flex w-full flex-1 flex-col items-center justify-start gap-4">
           <h2 className="mb-2 w-full text-left text-2xl text-white">
-            Your Subscriptions
+            Trade Feed
           </h2>
           {messages
             .sort((a, b) => b.publishedAt - a.publishedAt)

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import MainTokenInfo from "@/components/MainTokenInfo";
 import Chart from "@/components/Chart";
 import Box from "@/components/ui/Box";
-import { cn } from "@/lib/utils";
+import { cn, shortenHash } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -149,6 +149,11 @@ const Trading: FC = ({}) => {
       hash: response2.hash,
     });
 
+    sendNotificationGeneral(
+      "Someone opened a position!",
+      response2.hash,
+      size / collateralAmount
+    );
     reset();
     refetch();
     setLoading(false);
@@ -195,6 +200,47 @@ const Trading: FC = ({}) => {
     refetchOnMount: false,
     refetchOnReconnect: false,
   });
+
+  const sendNotificationGeneral = async (
+    title: string,
+    id: string,
+    leverage: number
+  ) => {
+    await fetch(
+      `https://notify.walletconnect.com/${
+        process.env.NEXT_PUBLIC_PROJECT_ID ?? ""
+      }/notify`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTIFY ?? ""}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          notification: {
+            type: "0de41dc4-845a-4f70-b420-809cc832d71e", // Notification type ID copied from Cloud
+            title: title,
+            body:
+              "ID: " +
+              shortenHash(id.toString()) +
+              " | " +
+              (position === PositionType.Long ? "LONG" : "SHORT") +
+              " | " +
+              leverage +
+              "X | " +
+              (selectedCryptoID === "bitcoin" ? "BTC" : "ETH"),
+          },
+          accounts: [
+            `eip155:${chainID}:${"0x1Cd5956d6BDb1692e92113A3F2130435333e178D"}`,
+          ],
+        }),
+      }
+    );
+  };
+
+  useEffect(() => {
+    refetch();
+  }, [account, refetch]);
 
   return (
     <div className="flex flex-1 flex-col items-center justify-between p-12">
@@ -331,6 +377,7 @@ const Trading: FC = ({}) => {
               tokenAddress={position.token}
               user={position.user}
               liquidateMode={false}
+              onComplete={refetch}
             />
           ))}
       </div>

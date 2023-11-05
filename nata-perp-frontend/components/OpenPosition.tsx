@@ -1,10 +1,13 @@
 "use client";
 
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 import Box from "./ui/Box";
 import { Button } from "./ui/button";
 import { usePerpContractWrite } from "@/hooks/usePerpContractWrite";
 import { useChainId } from "wagmi";
+import { shortenHash } from "@/lib/utils";
+import { createPublicClient, http } from "viem";
+import { polygonZkEvmTestnet, gnosis } from "viem/chains";
 
 interface OpenPositionProps {
   id: number;
@@ -17,6 +20,7 @@ interface OpenPositionProps {
   tokenAddress: string;
   user: string;
   liquidateMode: boolean;
+  onComplete?: () => void;
 }
 
 const OpenPosition: FC<OpenPositionProps> = ({
@@ -30,7 +34,10 @@ const OpenPosition: FC<OpenPositionProps> = ({
   tokenAddress,
   user,
   liquidateMode,
+  onComplete,
 }) => {
+  const [publicClient, setPublicClient] = useState<any>();
+
   const { writeAsync: writeLiquidate } = usePerpContractWrite({
     functionName: "liquidate",
     selectedCryptoID,
@@ -50,6 +57,25 @@ const OpenPosition: FC<OpenPositionProps> = ({
 
   const chainId = useChainId();
 
+  useEffect(() => {
+    switch (chainId) {
+      case 1442:
+        const client1 = createPublicClient({
+          chain: polygonZkEvmTestnet,
+          transport: http(),
+        });
+        setPublicClient(client1);
+        break;
+      case 100:
+        const client2 = createPublicClient({
+          chain: gnosis,
+          transport: http(),
+        });
+        setPublicClient(client2);
+        break;
+    }
+  }, [chainId]);
+
   const sendNotification = async (title: string) => {
     await fetch(
       `https://notify.walletconnect.com/${
@@ -65,10 +91,49 @@ const OpenPosition: FC<OpenPositionProps> = ({
           notification: {
             type: "0de41dc4-845a-4f70-b420-809cc832d71e", // Notification type ID copied from Cloud
             title: title,
-            body: "Position id: " + id,
+            body:
+              "ID: " +
+              shortenHash(id.toString()) +
+              " | " +
+              type +
+              " | " +
+              profitAndLoss.toFixed(2) +
+              " $ | " +
+              (selectedCryptoID === "bitcoin" ? "BTC" : "ETH"),
+          },
+          accounts: [`eip155:${chainId}:${user}`],
+        }),
+      }
+    );
+  };
+
+  const sendNotificationGeneral = async (title: string) => {
+    await fetch(
+      `https://notify.walletconnect.com/${
+        process.env.NEXT_PUBLIC_PROJECT_ID ?? ""
+      }/notify`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTIFY ?? ""}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          notification: {
+            type: "0de41dc4-845a-4f70-b420-809cc832d71e", // Notification type ID copied from Cloud
+            title: title,
+            body:
+              "ID: " +
+              shortenHash(id.toString()) +
+              " | " +
+              type +
+              " | " +
+              profitAndLoss.toFixed(2) +
+              " $ | " +
+              (selectedCryptoID === "bitcoin" ? "BTC" : "ETH"),
           },
           accounts: [
-            `eip155:${chainId}:${user}`, // CAIP-10 account ID
+            `eip155:${chainId}:${"0x1Cd5956d6BDb1692e92113A3F2130435333e178D"}`,
           ],
         }),
       }
@@ -76,17 +141,37 @@ const OpenPosition: FC<OpenPositionProps> = ({
   };
 
   const handleClose = async () => {
-    await writeClose({
+    const response1 = await writeClose({
       args: [tokenAddress, id],
     });
+
+    const transaction1 = await publicClient.waitForTransactionReceipt({
+      hash: response1.hash,
+    });
+
     await sendNotification("You closed your position!");
+    await sendNotificationGeneral("Someone closed a position!");
+
+    if (onComplete) {
+      onComplete();
+    }
   };
 
   const handleLiquidate = async () => {
-    await writeLiquidate({
+    const response1 = await writeLiquidate({
       args: [user, id],
     });
+
+    const transaction1 = await publicClient.waitForTransactionReceipt({
+      hash: response1.hash,
+    });
+
     await sendNotification("Your position has been liquidated!");
+    await sendNotificationGeneral("Someone's position has been liquidated!");
+
+    if (onComplete) {
+      onComplete();
+    }
   };
 
   return (

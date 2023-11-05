@@ -4,6 +4,8 @@ import Link from "next/link";
 import { FC } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { FaBell } from "react-icons/fa";
+import Box from "./ui/Box";
 
 const Navbar: FC = ({}) => {
   const pathname = usePathname();
@@ -32,14 +34,18 @@ const Navbar: FC = ({}) => {
         <Link href={"/liquidation"} className={getLinkClasses("/liquidation")}>
           Liquidation
         </Link>
-        <Link
-          href={"/notifications"}
-          className={getLinkClasses("/notifications")}
-        >
-          Notifications
+        <Link href={"/feed"} className={getLinkClasses("/feed")}>
+          Feed
         </Link>
       </div>
-      <w3m-button />
+      <div className="flex flex-row items-center gap-6">
+        <Link href={"/notifications"}>
+          <Box className="my-auto flex h-12 w-12 items-center justify-center rounded-lg border-white">
+            <FaBell className="h-6 w-6 text-white" />
+          </Box>
+        </Link>
+        <w3m-button />
+      </div>
     </div>
   );
 };

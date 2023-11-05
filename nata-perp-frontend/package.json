@@ -25,6 +25,7 @@
     "react-dom": "^18",
     "react-google-charts": "^4.0.1",
     "react-hook-form": "^7.47.0",
+    "react-icons": "^4.11.0",
     "react-ts-tradingview-widgets": "^1.2.0",
     "tailwind-merge": "^2.0.0",
     "tailwindcss-animate": "^1.0.7",
